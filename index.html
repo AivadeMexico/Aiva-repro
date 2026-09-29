@@ -23,6 +23,8 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 .modal{background:#fff;width:min(560px,100%);max-height:88vh;overflow:auto;border-radius:24px;padding:22px;box-shadow:0 25px 70px #0018} .field{margin:12px 0} .field label{display:block;font-weight:800;margin-bottom:5px} .field input,.field select{width:100%}
 .green{background:var(--green);color:#fff} .red{background:var(--red);color:#fff} .small{padding:8px 11px;font-size:12px} .history{border-left:3px solid #cce2eb;padding-left:12px;margin:10px 0}
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr} .logo{max-width:330px} .kpis{grid-template-columns:repeat(2,1fr)} h1{font-size:32px} select{min-width:0;flex:1}}
+#cowSort{min-height:44px;padding:10px 12px;border:1px solid #cbd9df;border-radius:10px;background:#fff;font-size:15px}
+.modal input,.modal select,.modal button{min-height:44px}
 </style>
 </head>
 <body>
@@ -44,12 +46,12 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
  <div class="kpi"><span>DÍAS ABIERTOS</span><b id="kOpen">—</b></div>
  <div class="kpi"><span>INTERVALO ENTRE PARTOS</span><b>—</b></div>
  <div class="kpi"><span>CONCEPCIÓN ANUAL</span><b id="kConc">—</b></div>
- <div class="kpi"><span>PREÑEZ 21 DÍAS</span><b>—</b></div>
+ <div class="kpi"><span>PREÑEZ <span id="kPregCycle">21</span> DÍAS</span><b id="kPreg">—</b><small id="kPregDetail" style="display:block;color:#70838e;margin-top:4px"></small></div>
  <div class="kpi"><span>DETECCIÓN DE CELOS</span><b>—</b></div>
 </div>
 
 <div class="card">
- <div class="row"><div><b>⚙️ Parámetros del rancho</b><div style="color:#70838e;margin-top:5px">Fecha de visita: <span id="visitDate"></span></div></div><button class="light" id="openParams">MODIFICAR</button></div>
+ <div class="row"><div><b>⚙️ Parámetros del rancho</b><div style="color:#70838e;margin-top:5px">Fecha de visita: <span id="visitDate"></span> · Espera: <b><span id="showVwp">60</span> d</b> · Diagnóstico: <b><span id="showDiag">30</span> d post-IA</b> · Ciclo: <b><span id="showCycle">21</span> d</b></div></div><button type="button" class="light" id="openParams">MODIFICAR</button></div>
 </div>
 
 <div class="section-title">HATO <span class="count" id="cowCount"></span></div>
@@ -81,13 +83,13 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
    <b>Vacas para diagnóstico</b>
    <div style="color:#70838e;margin-top:5px">Registra rápidamente PREÑADA o VACÍA durante la visita.</div>
   </div>
-  <button class="btn" id="openDiagnosis">ABRIR DIAGNÓSTICO DE GESTACIÓN</button>
+  <button type="button" class="btn" id="openDiagnosis">ABRIR DIAGNÓSTICO DE GESTACIÓN</button>
  </div>
 </div>
 
 <div class="modal-bg hidden" id="diagnosisModal">
  <div class="modal" style="width:min(900px,100%)">
-  <div class="row"><h2 style="margin:0">Diagnóstico de gestación</h2><button class="light" id="closeDiagnosis">CERRAR</button></div>
+  <div class="row"><h2 style="margin:0">Diagnóstico de gestación</h2><button type="button" class="light" id="closeDiagnosis">CERRAR</button></div>
   <div class="field"><label>Buscar vaca por arete</label><input id="diagSearch" inputmode="numeric" placeholder="Ej. 2604"></div>
   <div class="scroll"><table><thead><tr><th>VACA</th><th>ÚLTIMA IA</th><th>DÍAS IA</th><th>SERVICIOS</th><th>RESULTADO</th></tr></thead><tbody id="diagBody"></tbody></table></div>
  </div>
@@ -96,11 +98,11 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 
 <div class="modal-bg hidden" id="paramsModal">
  <div class="modal">
-  <div class="row"><h2 style="margin:0">Parámetros del rancho</h2><button class="light" id="closeParams">CERRAR</button></div>
+  <div class="row"><h2 style="margin:0">Parámetros del rancho</h2><button type="button" class="light" id="closeParams">CERRAR</button></div>
   <div class="field"><label>Días voluntarios de espera para primer servicio</label><input id="pVwp" type="number" min="0" inputmode="numeric" value="60"></div>
   <div class="field"><label>Días mínimos post-IA para diagnóstico de gestación</label><input id="pDiagDays" type="number" min="1" inputmode="numeric" value="30"></div>
-  <div class="field"><label>Duración del ciclo para tasa de preñez</label><input id="pCycle" type="number" min="1" inputmode="numeric" value="21"></div>
-  <button class="btn" id="saveParams">GUARDAR PARÁMETROS</button>
+  <div class="field"><label>Periodo para TASA DE PREÑEZ (días)</label><input id="pCycle" type="number" min="1" inputmode="numeric" value="21"><small style="color:#70838e">Por defecto: 21 días. Se usa junto con los días voluntarios de espera para definir elegibilidad.</small></div>
+  <button type="button" class="btn" id="saveParams">GUARDAR PARÁMETROS</button>
  </div>
 </div>
 
@@ -122,11 +124,14 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
   <div class="field"><label>Evento</label><select id="eventType"><option>PARTO</option><option>INSEMINACIÓN</option><option>REVISIÓN</option><option>SECADO</option><option>ABORTO</option></select></div>
   <div class="field"><label>Fecha</label><input type="date" id="eventDate"></div>
   <div class="field"><label>Nota / resultado</label><input id="eventNote"></div>
-  <button class="btn" id="saveEvent">GUARDAR EVENTO</button>
+  <button type="button" class="btn" id="saveEvent">GUARDAR EVENTO</button>
  </div>
 </div>
 
 <script>
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));}
+if('caches' in window){caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));}
+
 const SEED=[{"id":"25","lot":"0","lactation":3,"calving":"2026-07-01","sourceDim":34,"status":"ABORT","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2609","lot":"0","lactation":2,"calving":"2026-06-15","sourceDim":50,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"1317","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"lutalize","events":[],"ais":[]},{"id":"1327","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"1018","lot":"0","lactation":3,"calving":"2026-05-01","sourceDim":95,"status":"FRESH","daysAI":0,"nAI":0,"note":"pg","events":[],"ais":[]},{"id":"31","lot":"0","lactation":3,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"80","lot":"0","lactation":2,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"121","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2604","lot":"0","lactation":2,"calving":"2026-06-01","sourceDim":64,"status":"INSEMINATED","daysAI":9,"nAI":2,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"137","lot":"0","lactation":1,"calving":"2026-05-01","sourceDim":95,"status":"INSEMINATED","daysAI":31,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-04","bull":"perfect"}]},{"id":"132","lot":"0","lactation":2,"calving":"2026-03-24","sourceDim":133,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-02","bull":"perfect"}]},{"id":"131","lot":"0","lactation":1,"calving":"2026-03-05","sourceDim":152,"status":"INSEMINATED","daysAI":17,"nAI":1,"note":"axford","events":[],"ais":[{"date":"2026-07-18","bull":"axford"}]},{"id":"119","lot":"0","lactation":1,"calving":"2026-02-06","sourceDim":179,"status":"INSEMINATED","daysAI":43,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-06-22","bull":"perfect"}]},{"id":"86","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"Charolais","events":[],"ais":[{"date":"2026-07-02","bull":"Charolais"}]},{"id":"68","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":30,"nAI":1,"note":"nacho","events":[],"ais":[{"date":"2026-07-05","bull":"nacho"}]},{"id":"136","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":9,"nAI":1,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"1318","lot":"0","lactation":1,"calving":"2026-04-01","sourceDim":125,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1333","lot":"0","lactation":1,"calving":"2026-03-01","sourceDim":156,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1015","lot":"0","lactation":1,"calving":"2026-02-08","sourceDim":177,"status":"PREGNANT","daysAI":94,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-02","bull":""}]},{"id":"203","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"201","lot":"0","lactation":2,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":142,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-15","bull":""}]},{"id":"130","lot":"0","lactation":1,"calving":"2026-01-20","sourceDim":196,"status":"PREGNANT","daysAI":159,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-26","bull":""}]},{"id":"1343","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1336","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"10","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1375","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"202","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":134,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-23","bull":""}]},{"id":"128","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT","daysAI":124,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-02","bull":""}]},{"id":"11","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":201,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-15","bull":""}]},{"id":"81","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":203,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-13","bull":""}]},{"id":"82","lot":"0","lactation":1,"calving":"2025-11-01","sourceDim":276,"status":"PREGNANT","daysAI":122,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-04","bull":""}]},{"id":"124","lot":"0","lactation":1,"calving":"2025-10-10","sourceDim":298,"status":"PREGNANT","daysAI":123,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-03","bull":""}]},{"id":"126","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":133,"nAI":2,"note":"","events":[],"ais":[{"date":"2026-03-24","bull":""}]},{"id":"69","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":196,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-20","bull":""}]},{"id":"70","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":135,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-03-22","bull":""}]},{"id":"83","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"12","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"3416","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"1004","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT_CONFIRMED","daysAI":178,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-07","bull":""}]},{"id":"9843","lot":"0","lactation":1,"calving":"2025-11-18","sourceDim":259,"status":"PREGNANT_CONFIRMED","daysAI":86,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-10","bull":""}]},{"id":"129","lot":"0","lactation":1,"calving":"2025-10-29","sourceDim":279,"status":"PREGNANT_CONFIRMED","daysAI":167,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-18","bull":""}]},{"id":"127","lot":"0","lactation":1,"calving":"2025-10-13","sourceDim":295,"status":"PREGNANT_CONFIRMED","daysAI":177,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-08","bull":""}]},{"id":"67","lot":"0","lactation":2,"calving":"2026-07-01","sourceDim":34,"status":"CLOSE_UP","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"138","lot":"0","lactation":2,"calving":"2025-12-01","sourceDim":235,"status":"DRY","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"49","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":274,"status":"DRY","daysAI":246,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-12-01","bull":""}]},{"id":"72","lot":"0","lactation":1,"calving":"2025-09-21","sourceDim":284,"status":"DRY","daysAI":287,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-10-21","bull":""}]},{"id":"66","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":271,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-06","bull":""}]},{"id":"5","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":264,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-13","bull":""}]},{"id":"134","lot":"0","lactation":2,"calving":"2026-03-23","sourceDim":134,"status":"OPEN","daysAI":0,"nAI":1,"note":"","events":[],"ais":[]},{"id":"9839","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"OPEN","daysAI":0,"nAI":0,"note":"cefalexina","events":[],"ais":[]}];
 const KEY='aivarepro_clean_v1';
 const today=()=>new Date().toISOString().slice(0,10);
@@ -151,6 +156,28 @@ const dim=c=>c.calving?diff(today(),c.calving):c.sourceDim??null;
 const dai=c=>lastAI(c)?diff(today(),lastAI(c)):null;
 const pregDays=c=>String(c.status).startsWith('PREGNANT')&&lastAI(c)?diff(today(),lastAI(c)):null;
 
+function pregnancyRate(r){
+ const p=r.params||{vwp:60,diagDays:30,cycle:21};
+ const cycle=Math.max(1,Number(p.cycle)||21);
+ const vwp=Math.max(0,Number(p.vwp)||0);
+ // Operational 21-day pregnancy rate: cows currently eligible for service are the denominator;
+ // cows diagnosed pregnant whose most recent IA/conception falls within the current cycle are numerator.
+ const eligible=(r.cows||[]).filter(c=>{
+   const d=dim(c);
+   const st=String(c.status||'').toUpperCase();
+   if(d==null || d<vwp) return false;
+   if(st==='DRY' || st==='ABORT') return false;
+   return !st.startsWith('PREGNANT');
+ });
+ const pregnantThisCycle=(r.cows||[]).filter(c=>{
+   const st=String(c.status||'').toUpperCase();
+   const ia=lastAI(c);
+   return st.startsWith('PREGNANT') && ia && diff(today(),ia)>=0 && diff(today(),ia)<cycle;
+ });
+ const denominator=eligible.length+pregnantThisCycle.length;
+ return {rate:denominator?100*pregnantThisCycle.length/denominator:null,pregnant:pregnantThisCycle.length,eligible:denominator,cycle};
+}
+
 function render(){
  const r=active(); if(!r)return; r.params=r.params||{vwp:60,diagDays:30,cycle:21};
  const sel=document.getElementById('ranchSelect');
@@ -158,10 +185,15 @@ function render(){
  sel.value=r.id;
  document.getElementById('owner').textContent='Propietario: '+(r.owner||'—');
  document.getElementById('visitDate').textContent=today();
+ document.getElementById('showVwp').textContent=r.params.vwp;
+ document.getElementById('showDiag').textContent=r.params.diagDays;
+ document.getElementById('showCycle').textContent=r.params.cycle;
  document.getElementById('herdLabel').textContent=r.cows.length+' vacas';
  const q=document.getElementById('cowSearch').value.trim();
  let rows=r.cows.filter(c=>!q||String(c.id).includes(q));
- const sort=document.getElementById('cowSort')?.value||'numberAsc';
+ const sortSel=document.getElementById('cowSort');
+ if(r.sort && sortSel.value!==r.sort) sortSel.value=r.sort;
+ const sort=sortSel?.value||r.sort||'numberAsc';
  const num=v=>Number.isFinite(Number(v))?Number(v):999999999;
  const val=(c,key)=>{
    if(key==='number') return num(c.id);
@@ -186,11 +218,18 @@ function render(){
  document.getElementById('kConc').textContent=insems?Math.round(100*preg/insems)+' %':'—';
  const opens=r.cows.filter(c=>c.calving&&String(c.status).startsWith('PREGNANT')&&lastAI(c)).map(c=>diff(lastAI(c),c.calving)).filter(x=>x>=0);
  document.getElementById('kOpen').textContent=opens.length?Math.round(opens.reduce((a,b)=>a+b,0)/opens.length):'—';
+ const pr=pregnancyRate(r);
+ document.getElementById('kPregCycle').textContent=pr.cycle;
+ document.getElementById('kPreg').textContent=pr.rate==null?'—':pr.rate.toFixed(1)+' %';
+ document.getElementById('kPregDetail').textContent=pr.eligible?`${pr.pregnant} preñadas / ${pr.eligible} elegibles`:'Sin vacas elegibles';
  save();
 }
 document.getElementById('ranchSelect').addEventListener('change',e=>{data.active=e.target.value;render()});
 document.getElementById('cowSearch').addEventListener('input',render);
-document.getElementById('cowSort').addEventListener('change',render);
+document.getElementById('cowSort').addEventListener('change',e=>{
+ const r=active(); if(r){r.sort=e.target.value;save();}
+ render();
+});
 const ranchModal=document.getElementById('ranchModal');
 document.getElementById('addRanchBtn').onclick=()=>ranchModal.classList.remove('hidden');
 document.getElementById('closeRanch').onclick=()=>ranchModal.classList.add('hidden');
@@ -221,17 +260,31 @@ function openCow(id){
 }
 document.getElementById('closeCow').onclick=()=>cowModal.classList.add('hidden');
 cowModal.onclick=e=>{if(e.target===cowModal)cowModal.classList.add('hidden')};
-document.getElementById('saveEvent').onclick=()=>{
- if(!currentCow)return;
- const type=document.getElementById('eventType').value,date=document.getElementById('eventDate').value,note=document.getElementById('eventNote').value.trim();
+document.getElementById('saveEvent').onclick=function(e){
+ e.preventDefault();
+ if(!currentCow){alert('Selecciona una vaca.');return}
+ const type=document.getElementById('eventType').value;
+ const date=document.getElementById('eventDate').value;
+ const note=document.getElementById('eventNote').value.trim();
  if(!date){alert('Selecciona la fecha.');return}
  currentCow.events=currentCow.events||[];
- if(type==='INSEMINACIÓN'){currentCow.ais=currentCow.ais||[];currentCow.ais.push({date,note});currentCow.nAI=currentCow.ais.length;currentCow.status='INSEMINATED'}
- else if(type==='PARTO'){currentCow.calving=date;currentCow.status='FRESH';currentCow.events.push({date,type,note})}
- else if(type==='SECADO'){currentCow.status='DRY';currentCow.events.push({date,type,note})}
- else if(type==='ABORTO'){currentCow.status='ABORT';currentCow.events.push({date,type,note})}
- else currentCow.events.push({date,type,note});
- save(); openCow(currentCow.id); render();
+ currentCow.ais=currentCow.ais||[];
+ if(type==='INSEMINACIÓN'){
+   currentCow.ais.push({date:date,note:note});
+   currentCow.nAI=currentCow.ais.length;
+   currentCow.status='INSEMINATED';
+ } else if(type==='PARTO'){
+   currentCow.calving=date; currentCow.status='FRESH'; currentCow.events.push({date:date,type:type,note:note});
+ } else if(type==='SECADO'){
+   currentCow.status='DRY'; currentCow.events.push({date:date,type:type,note:note});
+ } else if(type==='ABORTO'){
+   currentCow.status='ABORT'; currentCow.events.push({date:date,type:type,note:note});
+ } else if(type==='REVISIÓN'){
+   currentCow.events.push({date:date,type:type,note:note});
+ }
+ save(); render(); openCow(currentCow.id);
+ document.getElementById('eventNote').value='';
+ alert('Evento guardado correctamente.');
 };
 
 const diagnosisModal=document.getElementById('diagnosisModal');
@@ -239,14 +292,21 @@ function diagnosisCandidates(){
  const r=active(); if(!r)return [];
  r.params=r.params||{vwp:60,diagDays:30,cycle:21};
  const min=Number(r.params.diagDays)||30;
- return (r.cows||[]).filter(c=>lastAI(c) && (dai(c)??0)>=min && !String(c.status).startsWith('PREGNANT'));
+ return (r.cows||[]).filter(c=>{
+   const ia=lastAI(c);
+   const status=String(c.status||'').trim().toUpperCase();
+   const isInseminated = status==='INSEM' || status==='INSEMINADA' || status==='INSEMINATED';
+   if(!isInseminated || !ia || (dai(c)??0)<min) return false;
+   const lastDx=(c.events||[]).filter(e=>e.type==='DIAGNÓSTICO').sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];
+   return !lastDx || String(lastDx.date)<String(ia);
+ });
 }
 function renderDiagnosis(){
  const q=(document.getElementById('diagSearch')?.value||'').trim();
  const rows=diagnosisCandidates().filter(c=>!q||String(c.id).includes(q));
  document.getElementById('diagBody').innerHTML=rows.length?rows.map(c=>`<tr>
   <td><b>${c.id}</b></td><td>${lastAI(c)||'—'}</td><td>${dai(c)??'—'}</td><td>${c.nAI??c.ais?.length??0}</td>
-  <td><button class="green small" onclick="setDiagnosis('${c.id}','PREGNANT')">PREÑADA</button> <button class="red small" onclick="setDiagnosis('${c.id}','OPEN')">VACÍA</button></td>
+  <td><button class="green small diag-result" data-id="${c.id}" data-result="PREGNANT">PREÑADA</button> <button class="red small diag-result" data-id="${c.id}" data-result="OPEN">VACÍA</button></td>
  </tr>`).join(''):'<tr><td colspan="5">No hay vacas pendientes de diagnóstico.</td></tr>';
 }
 function setDiagnosis(id,result){
@@ -259,6 +319,10 @@ document.getElementById('openDiagnosis').onclick=()=>{diagnosisModal.classList.r
 document.getElementById('closeDiagnosis').onclick=()=>diagnosisModal.classList.add('hidden');
 diagnosisModal.onclick=e=>{if(e.target===diagnosisModal)diagnosisModal.classList.add('hidden')};
 document.getElementById('diagSearch').addEventListener('input',renderDiagnosis);
+document.getElementById('diagBody').addEventListener('click',e=>{
+ const b=e.target.closest('.diag-result'); if(!b)return;
+ setDiagnosis(b.dataset.id,b.dataset.result);
+});
 
 
 // Parámetros del rancho
@@ -272,10 +336,10 @@ function openParams(){
  paramsModal.classList.remove('hidden');
 }
 function closeParams(){ paramsModal.classList.add('hidden'); }
-document.getElementById('openParams').addEventListener('click',openParams);
-document.getElementById('closeParams').addEventListener('click',closeParams);
+document.getElementById('openParams').onclick=openParams;
+document.getElementById('closeParams').onclick=closeParams;
 paramsModal.addEventListener('click',e=>{if(e.target===paramsModal)closeParams()});
-document.getElementById('saveParams').addEventListener('click',()=>{
+document.getElementById('saveParams').onclick=()=>{
  const r=active(); if(!r)return;
  r.params={
    vwp:Math.max(0,Number(document.getElementById('pVwp').value)||0),
@@ -283,7 +347,8 @@ document.getElementById('saveParams').addEventListener('click',()=>{
    cycle:Math.max(1,Number(document.getElementById('pCycle').value)||21)
  };
  save(); closeParams(); render();
-});
+ alert('Parámetros guardados correctamente.');
+};
 
 save();render();
 </script>
