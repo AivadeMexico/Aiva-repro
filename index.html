@@ -5,13 +5,88 @@
 .hato-row{cursor:pointer}.hato-row:hover{background:#f2f7f4}
 .status-tag{display:inline-block;padding:5px 9px;border-radius:999px;background:#edf3ef;font-weight:800;font-size:13px}
 @media(max-width:700px){.hato-controls{grid-template-columns:1fr}.hato-hide-mobile{display:none}}
+
+.cow-link{background:none;border:0;padding:0;font:inherit;font-weight:900;text-decoration:underline;cursor:pointer;color:inherit}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}
+.modal-card{background:#fff;border-radius:18px;width:min(760px,96vw);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 18px 60px rgba(0,0,0,.28)}
+.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center;position:sticky;top:0;background:#fff;padding-bottom:10px}
+.timeline{border-left:3px solid #d8e4dc;margin:12px 0 0 9px;padding-left:18px}
+.timeline-item{position:relative;padding:0 0 16px 0}
+.timeline-item:before{content:"";position:absolute;left:-25px;top:5px;width:11px;height:11px;border-radius:50%;background:#496a57}
+.timeline-date{font-weight:900}.timeline-detail{margin-top:3px}.timeline-empty{padding:16px 0;color:#66736b}
+
+.event-entry{margin:14px 0;padding:14px;border:1px solid #d8e4dc;border-radius:14px;background:#f8fbf9}
+.event-grid{display:grid;grid-template-columns:1.2fr 1fr 1.6fr auto;gap:8px}
+.event-grid select,.event-grid input{width:100%;padding:11px;border:1px solid #b9c9bf;border-radius:10px;background:#fff;font-size:16px}
+@media(max-width:700px){.event-grid{grid-template-columns:1fr}}
+
+.home-dashboard{margin:14px 0}
+.home-dashboard .dash-title{font-weight:900;margin-bottom:8px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:10px}
+.kpi-mini{border:1px solid #d8e4dc;border-radius:14px;padding:12px;background:#fff}
+.kpi-mini span{display:block;font-size:12px;color:#68756d;font-weight:800}
+.kpi-mini b{display:block;font-size:24px;margin-top:3px}
+.report-btn{width:100%;margin-top:12px;padding:14px;font-size:17px}
+@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+@media print{
+  body>*{display:none!important}
+  #printReport{display:block!important;position:absolute;inset:0;background:#fff;padding:18px;color:#111}
+  #printReport *{visibility:visible}
+}
+.report-sheet{display:none}
+.report-sheet table{width:100%;border-collapse:collapse;font-size:11px}
+.report-sheet th,.report-sheet td{border-bottom:1px solid #ddd;padding:5px;text-align:left}
+.report-bars{display:flex;align-items:flex-end;gap:28px;height:170px;border-bottom:1px solid #aaa;margin:18px 0 26px;padding:0 18px}
+.report-bar-wrap{flex:1;text-align:center;font-size:11px}
+.report-bar{width:70%;margin:auto;background:#607d6a;min-height:3px;border-radius:5px 5px 0 0}
+.report-bar-value{font-weight:900;margin-bottom:5px}
 </style></head><body><div class="app">
-<div class="top"><div><div class="brand">AIVA Repro</div><div class="muted">Rancho Cabraliego · jornada reproductiva</div></div><span id="net" class="pill"></span></div>
+<div class="top"><div><div class="brand">AIVA REPRO</div><div style="font-size:18px;font-weight:800;margin-top:3px">Asesoría Integral Bovina</div><div class="muted"><b id="homeRanchName">Rancho Cabraliego</b> · jornada reproductiva</div></div><span id="net" class="pill"></span></div>
+
+<div id="homeDashboard" class="home-dashboard">
+  <div class="dash-title">Resumen reproductivo del rancho</div>
+  <div class="kpi-grid">
+    <div class="kpi-mini"><span>DEL PROMEDIO</span><b id="dashDim">—</b></div>
+    <div class="kpi-mini"><span>DÍAS ABIERTOS</span><b id="dashOpen">—</b></div>
+    <div class="kpi-mini"><span>INTERVALO ENTRE PARTOS</span><b id="dashCalving">—</b></div>
+    <div class="kpi-mini"><span>CONCEPCIÓN ANUAL</span><b id="dashConception">—</b></div>
+    <div class="kpi-mini"><span>PREÑEZ 21 DÍAS</span><b id="dashPreg">—</b></div>
+    <div class="kpi-mini"><span>DETECCIÓN DE CELOS</span><b id="dashHeat">—</b></div>
+  </div>
+  <button class="btn report-btn" onclick="generateReport()">📄 GENERAR REPORTE PDF</button>
+</div>
 <div class="card section"><div class="row"><b>⚙️ Parámetros del rancho</b><button class="btn light" onclick="toggleSettings()">MODIFICAR</button></div><div id="settingsSummary" class="note"></div><div id="settings" class="grid hidden" style="margin-top:10px"><div class="field"><label>PVE / liberar a primer servicio (DEL)</label><input id="vwp" type="number" min="0"></div><div class="field"><label>Diagnóstico desde (días post-IA)</label><input id="checkDays" type="number" min="1"></div><div class="field"><label>Gestación (días)</label><input id="gestDays" type="number" min="250"></div><div class="field"><label>Periodo seco (días)</label><input id="dryDays" type="number" min="0"></div><div class="field"><label>Fecha de jornada</label><input id="workDate" type="date"></div><div><button class="btn dark" style="margin-top:17px;width:100%" onclick="saveSettings()">GUARDAR PARÁMETROS</button></div></div></div>
 <div class="grid section"><div class="card kpi">TOTAL A DIAGNÓSTICO<b id="total">0</b></div><div class="card kpi">PENDIENTES<b id="pending">0</b></div><div class="card kpi">DIAGNOSTICADAS<b id="done">0</b></div><div class="card kpi">🟢 PREÑADAS<b id="preg">0</b></div><div class="card kpi">🔴 VACÍAS<b id="open">0</b></div></div>
 <div class="search"><input id="search" inputmode="numeric" autocomplete="off" placeholder="BUSCAR VACA POR ARETE" autofocus></div><div id="missing" class="card warn hidden">Vaca no encontrada. No se inventarán datos.</div>
 <div id="cow" class="card hidden"><div class="row"><div><div id="cowid" class="big"></div><div id="status" class="pill"></div></div><div><b>Acción pendiente</b><div id="action"></div></div></div><div class="grid section"><div>Último parto<br><b id="calving"></b></div><div>DEL<br><b id="dim"></b></div><div>Última IA<br><b id="ai"></b></div><div>Días post-IA<br><b id="dai"></b></div><div>N.º IA lactancia<br><b id="nAI"></b></div><div>Lactancia<br><b id="lact"></b></div></div><div id="diagActions" class="actions"><button class="btn green" onclick="diagnose('PREGNANT')">🟢 PREÑADA</button><button class="btn red" onclick="diagnose('OPEN')">🔴 VACÍA</button></div><div id="result" class="section"></div></div>
 
+
+<div id="cowModal" class="modal-backdrop hidden" onclick="if(event.target===this)closeCowCard()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div><div class="muted">TARJETA REPRODUCTIVA</div><div id="modalCowId" class="big"></div></div>
+      <button class="btn light" onclick="closeCowCard()">✕ CERRAR</button>
+    </div>
+    <div id="modalCowSummary" class="grid"></div>
+    
+<div class="event-entry">
+  <b>+ Agregar evento</b>
+  <div class="event-grid" style="margin-top:10px">
+    <select id="eventType">
+      <option value="PARTO">Parto</option>
+      <option value="INSEMINACION">Inseminación</option>
+      <option value="REVISION">Revisión</option>
+      <option value="SECADO">Secado</option>
+    </select>
+    <input id="eventDate" type="date">
+    <input id="eventNote" placeholder="Nota / resultado (opcional)">
+    <button class="btn" onclick="addCowEvent()">GUARDAR</button>
+  </div>
+</div>
+<h3>Historial cronológico</h3>
+    <div id="modalTimeline" class="timeline"></div>
+  </div>
+</div>
 <div class="card section" id="hatoSection">
   <div class="row">
     <div><h3 style="margin:0">🐄 HATO</h3><div class="muted">Todas las vacas cargadas · toca una vaca para abrir su ficha</div></div>
@@ -33,7 +108,7 @@
   </div>
   <div style="overflow:auto">
     <table class="table">
-      <thead><tr><th>Vaca</th><th>Estatus</th><th>DEL</th><th>Última IA</th><th>Días IA</th><th>N.º IA</th><th>Lactancia</th></tr></thead>
+      <thead><tr><th>N.º vaca</th><th>Estatus</th><th>Días en leche</th><th>Días inseminada</th><th>N.º servicios</th></tr></thead>
       <tbody id="hatoBody"></tbody>
     </table>
   </div>
@@ -52,10 +127,123 @@ function renderSettings(){el('vwp').value=db.settings.vwp;el('checkDays').value=
 function statusEs(s){const m={FRESH:'FRESCA',INSEMINATED:'INSEMINADA',PREGNANT:'PREÑADA',PREGNANT_CONFIRMED:'PREÑADA CONF.',OPEN:'VACÍA',ABORT:'ABORTO',DRY:'SECA',CLOSE_UP:'PRÓXIMA A PARTO',SOLD:'VENDIDA',CULL:'DESECHO',SLAUGHTER:'SACRIFICIO'};return m[s]||s||'SIN ESTATUS'}
 function cowDim(c){return c.calving?diff(db.visit.date,c.calving):null}
 function numId(v){let n=Number(v);return Number.isFinite(n)?n:null}
-function renderHato(){let q=(el('hatoSearch')?.value||'').trim().toLowerCase(),sort=el('hatoSort')?.value||'ID_ASC';let rows=db.cows.filter(c=>!q||String(c.id).toLowerCase().includes(q));rows.sort((a,b)=>{let av,bv,dir=sort.endsWith('_DESC')?-1:1;if(sort.startsWith('ID_')){let an=numId(a.id),bn=numId(b.id);if(an!==null&&bn!==null)return (an-bn)*dir;return String(a.id).localeCompare(String(b.id),undefined,{numeric:true})*dir}if(sort.startsWith('STATUS_'))return statusEs(a.status).localeCompare(statusEs(b.status),'es')*dir;if(sort.startsWith('DIM_')){av=cowDim(a);bv=cowDim(b)}else{av=daysAI(a);bv=daysAI(b)};av=av??-999999;bv=bv??-999999;return (av-bv)*dir});el('hatoCount').textContent=rows.length;el('hatoBody').innerHTML=rows.map(c=>`<tr class="hato-row" onclick="openFromHato('${c.id}')"><td><b>${c.id}</b></td><td><span class="status-tag">${statusEs(c.status)}</span></td><td>${cowDim(c)??'—'}</td><td>${fmt(lastAI(c))}</td><td>${daysAI(c)??'—'}</td><td>${c.nAI??'—'}</td><td>${c.lactation??'—'}</td></tr>`).join('')}
+
+function pct(n,d){return d?Math.round(n*1000/d)/10:null}
+function mean(a){let x=a.filter(v=>Number.isFinite(v));return x.length?Math.round(x.reduce((s,v)=>s+v,0)/x.length):null}
+function annualEvents(type){
+  let end=parse(db.visit.date),start=add(end,-365);
+  let out=[];
+  db.cows.forEach(c=>{
+    (c.events||[]).forEach(e=>{if(e.type===type&&e.date&&parse(e.date)>=start&&parse(e.date)<=end)out.push({c,e})});
+  });
+  return out
+}
+function dashboardStats(){
+  let cows=db.cows||[], dims=cows.map(c=>cowDim(c)).filter(v=>v!==null&&v>=0);
+  let pregnant=cows.filter(c=>String(c.status||'').includes('PREGNANT'));
+  let openDays=pregnant.map(c=>{let ai=lastAI(c);return c.calving&&ai?diff(ai,c.calving):null}).filter(v=>v!==null&&v>=0);
+  let intervals=[];
+  cows.forEach(c=>{
+    let births=(c.events||[]).filter(e=>e.type==='PARTO'&&e.date).map(e=>e.date);
+    if(c.calving&&!births.includes(c.calving))births.push(c.calving);
+    births.sort();
+    for(let i=1;i<births.length;i++)intervals.push(diff(births[i],births[i-1]));
+  });
+  let yearAI=[];
+  let end=parse(db.visit.date),start=add(end,-365);
+  cows.forEach(c=>(c.ais||[]).forEach(a=>{if(a.date&&parse(a.date)>=start&&parse(a.date)<=end)yearAI.push({c,a})}));
+  let yearPreg=pregnant.filter(c=>{let a=lastAI(c);return a&&parse(a)>=start&&parse(a)<=end}).length;
+  let conception=pct(yearPreg,yearAI.length);
+
+  let preg21=null, heat=null;
+  try{let k=pregkpi(); if(k){preg21=k.rate??k.pregRate??k.value??null}}catch(e){}
+  // Prototype heat-detection estimate from eligible cows with an IA in the current 21-day cycle.
+  let cycStart=cycleStartFor(db.visit.date),cycEnd=add(cycStart,20);
+  let eligible=cows.filter(c=>{let d=cowDim(c);return d!==null&&d>=(db.settings?.vwp||0)&&!String(c.status||'').includes('PREGNANT')});
+  let detected=eligible.filter(c=>(c.ais||[]).some(a=>a.date&&parse(a.date)>=parse(cycStart)&&parse(a.date)<=parse(cycEnd))).length;
+  heat=pct(detected,eligible.length);
+
+  return {dim:mean(dims),open:mean(openDays),calving:mean(intervals),conception,preg21,heat,
+          milking:cows.filter(c=>!['DRY','SOLD','CULL','SLAUGHTER'].includes(c.status)).length};
+}
+function showVal(v,suffix=''){return v===null||v===undefined||Number.isNaN(v)?'—':v+suffix}
+function renderDashboard(){
+  let s=dashboardStats();
+  if(el('dashDim'))el('dashDim').textContent=showVal(s.dim,' d');
+  if(el('dashOpen'))el('dashOpen').textContent=showVal(s.open,' d');
+  if(el('dashCalving'))el('dashCalving').textContent=showVal(s.calving,' d');
+  if(el('dashConception'))el('dashConception').textContent=showVal(s.conception,'%');
+  if(el('dashPreg'))el('dashPreg').textContent=showVal(s.preg21,'%');
+  if(el('dashHeat'))el('dashHeat').textContent=showVal(s.heat,'%');
+}
+function generateReport(){
+  let s=dashboardStats(), ranch=db.ranch?.name||'Rancho sin nombre';
+  let rows=(db.cows||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}));
+  let max=Math.max(s.milking||0,s.heat||0,s.preg21||0,1);
+  let bar=(label,val,unit)=>`<div class="report-bar-wrap"><div class="report-bar-value">${showVal(val,unit)}</div><div class="report-bar" style="height:${Math.max(3,Math.round((val||0)/max*120))}px"></div><div>${label}</div></div>`;
+  el('printReport').innerHTML=`
+    <h1 style="margin-bottom:4px">AIVA Repro</h1>
+    <h2 style="margin:0">${ranch}</h2>
+    <div>Reporte reproductivo · ${fmt(db.visit.date)}</div>
+    <hr>
+    <h3>Indicadores</h3>
+    <p><b>DEL promedio:</b> ${showVal(s.dim,' días')} &nbsp; | &nbsp;
+       <b>Días abiertos:</b> ${showVal(s.open,' días')} &nbsp; | &nbsp;
+       <b>Intervalo entre partos:</b> ${showVal(s.calving,' días')}</p>
+    <p><b>Tasa de concepción anual:</b> ${showVal(s.conception,'%')} &nbsp; | &nbsp;
+       <b>Tasa de preñez 21 días:</b> ${showVal(s.preg21,'%')} &nbsp; | &nbsp;
+       <b>Detección de celos:</b> ${showVal(s.heat,'%')}</p>
+    <h3>Resumen gráfico</h3>
+    <div class="report-bars">${bar('Vacas en ordeño',s.milking,'')}${bar('Detección de celos',s.heat,'%')}${bar('Tasa de preñez',s.preg21,'%')}</div>
+    <h3>Listado del hato</h3>
+    <table><thead><tr><th>N.º vaca</th><th>Estatus</th><th>DEL</th><th>Días IA</th><th>Servicios</th></tr></thead>
+    <tbody>${rows.map(c=>`<tr><td>${c.id}</td><td>${statusEs(c.status)}</td><td>${cowDim(c)??'—'}</td><td>${daysAI(c)??'—'}</td><td>${c.nAI??(c.ais?.length||0)}</td></tr>`).join('')}</tbody></table>
+    <p style="margin-top:18px;font-size:10px">Generado por AIVA Repro.</p>`;
+  window.print();
+}
+function renderHato(){let q=(el('hatoSearch')?.value||'').trim(),sort=el('hatoSort')?.value||'ID_ASC';let rows=db.cows.filter(c=>!q||String(c.id).includes(q));rows.sort((a,b)=>{let av,bv,dir=sort.endsWith('_DESC')?-1:1;if(sort.startsWith('ID_')){let an=numId(a.id),bn=numId(b.id);if(an!==null&&bn!==null)return(an-bn)*dir;return String(a.id).localeCompare(String(b.id),undefined,{numeric:true})*dir}if(sort.startsWith('STATUS_'))return statusEs(a.status).localeCompare(statusEs(b.status),'es')*dir;if(sort.startsWith('DIM_')){av=cowDim(a);bv=cowDim(b)}else{av=daysAI(a);bv=daysAI(b)};av=av??-999999;bv=bv??-999999;return(av-bv)*dir});el('hatoCount').textContent=rows.length;el('hatoBody').innerHTML=rows.map(c=>`<tr><td><button class="cow-link" onclick="openCowCard('${c.id}')">${c.id}</button></td><td><span class="status-tag">${statusEs(c.status)}</span></td><td>${cowDim(c)??'—'}</td><td>${daysAI(c)??'—'}</td><td>${c.nAI??(c.ais?.length||0)}</td></tr>`).join('')}
+
+function eventDateValue(x){return x&&x.date?x.date:''}
+function cowHistory(c){
+  let h=[];
+  if(c.calving)h.push({date:c.calving,title:'PARTO',detail:`Inicio de lactancia ${c.lactation??'—'}`});
+  (c.ais||[]).forEach((a,i)=>h.push({date:a.date,title:'INSEMINACIÓN',detail:`Servicio ${i+1}${a.bull?' · Toro: '+a.bull:''}${a.note?' · '+a.note:''}`}));
+  (c.events||[]).forEach(e=>h.push({date:e.date||e.when||'',title:(e.type||e.action||'EVENTO').toString().replaceAll('_',' '),detail:e.note||e.result||e.detail||''}));
+  if(c.diagnoses) (c.diagnoses||[]).forEach(e=>h.push({date:e.date||'',title:'DIAGNÓSTICO',detail:e.result||e.status||''}));
+  return h.filter(x=>x.date).sort((a,b)=>parse(a.date)-parse(b.date));
+}
+let modalCowId=null;
+function openCowCard(id){
+  let c=db.cows.find(x=>String(x.id)===String(id));if(!c)return;modalCowId=String(c.id);
+  el('modalCowId').textContent='Vaca '+c.id;
+  el('modalCowSummary').innerHTML=`<div class="card kpi">ESTATUS<b>${statusEs(c.status)}</b></div><div class="card kpi">DEL<b>${cowDim(c)??'—'}</b></div><div class="card kpi">DÍAS IA<b>${daysAI(c)??'—'}</b></div><div class="card kpi">SERVICIOS<b>${c.nAI??(c.ais?.length||0)}</b></div>`;
+  let h=cowHistory(c);
+  el('modalTimeline').innerHTML=h.length?h.map(x=>`<div class="timeline-item"><div class="timeline-date">${fmt(x.date)} · ${x.title}</div><div class="timeline-detail">${x.detail||''}</div></div>`).join(''):`<div class="timeline-empty">No hay acciones cronológicas registradas para esta vaca.</div>`;
+  el('eventDate').value=db.visit?.date||iso(new Date());el('eventNote').value='';el('cowModal').classList.remove('hidden');
+}
+
+function addCowEvent(){
+  let c=db.cows.find(x=>String(x.id)===String(modalCowId));if(!c)return;
+  let type=el('eventType').value,date=el('eventDate').value,note=el('eventNote').value.trim();
+  if(!date){alert('Selecciona la fecha del evento');return}
+  c.events=c.events||[];
+  if(type==='INSEMINACION'){
+    c.ais=c.ais||[];
+    c.ais.push({date:date,note:note});
+    c.ais.sort((a,b)=>parse(a.date)-parse(b.date));
+    c.nAI=c.ais.length;
+    c.status='INSEMINATED';
+  }else{
+    c.events.push({date:date,type:type,note:note});
+    if(type==='PARTO'){c.calving=date;c.status='FRESH';c.ais=[];c.nAI=0}
+    if(type==='SECADO')c.status='DRY';
+  }
+  save();render();openCowCard(c.id);
+}
+function closeCowCard(){el('cowModal').classList.add('hidden')}
 function clearHatoFilters(){el('hatoSearch').value='';el('hatoSort').value='ID_ASC';renderHato()}
 function openFromHato(id){let c=db.cows.find(x=>x.id===id);if(!c)return;el('search').value=id;showCow(c);el('cow').scrollIntoView({behavior:'smooth',block:'start'})}
-function render(){renderSettings();renderHato();let list=db.cows.filter(eligibleDiag), rows=list.filter(c=>filter==='ALL'||res(c)===filter);el('tbody').innerHTML=rows.map(c=>{let r=res(c),label=r==='PREGNANT'?'<span class="ok">🟢 PREÑADA ✓</span>':r==='OPEN'?'<span class="bad">🔴 VACÍA ✓</span>':'PENDIENTE',buttons=r==='PENDING'?`<button onclick="quick('${c.id}','PREGNANT')">🟢</button> <button onclick="quick('${c.id}','OPEN')">🔴</button>`:'—';return `<tr><td><b>${c.id}</b></td><td>${fmt(c.calving)}</td><td>${fmt(lastAI(c))}</td><td>${daysAI(c)}</td><td>${c.nAI||'—'}</td><td>${buttons}</td><td>${label}</td></tr>`}).join('');let ds=Object.values(db.visit.diagnoses),p=ds.filter(x=>x.result==='PREGNANT').length,o=ds.filter(x=>x.result==='OPEN').length;el('total').textContent=list.length;el('pending').textContent=Math.max(0,list.length-p-o);el('done').textContent=p+o;el('preg').textContent=p;el('open').textContent=o;renderPregRate()}
+function render(){renderSettings();if(el('homeRanchName'))el('homeRanchName').textContent=db.ranch?.name||'Rancho sin nombre';renderDashboard();renderHato();let list=db.cows.filter(eligibleDiag), rows=list.filter(c=>filter==='ALL'||res(c)===filter);el('tbody').innerHTML=rows.map(c=>{let r=res(c),label=r==='PREGNANT'?'<span class="ok">🟢 PREÑADA ✓</span>':r==='OPEN'?'<span class="bad">🔴 VACÍA ✓</span>':'PENDIENTE',buttons=r==='PENDING'?`<button onclick="quick('${c.id}','PREGNANT')">🟢</button> <button onclick="quick('${c.id}','OPEN')">🔴</button>`:'—';return `<tr><td><b>${c.id}</b></td><td>${fmt(c.calving)}</td><td>${fmt(lastAI(c))}</td><td>${daysAI(c)}</td><td>${c.nAI||'—'}</td><td>${buttons}</td><td>${label}</td></tr>`}).join('');let ds=Object.values(db.visit.diagnoses),p=ds.filter(x=>x.result==='PREGNANT').length,o=ds.filter(x=>x.result==='OPEN').length;el('total').textContent=list.length;el('pending').textContent=Math.max(0,list.length-p-o);el('done').textContent=p+o;el('preg').textContent=p;el('open').textContent=o;renderPregRate()}
 function setFilter(f){filter=f;render()} function showCow(c){current=c;el('missing').classList.add('hidden');el('cow').classList.remove('hidden');el('cowid').textContent='VACA '+c.id;el('status').textContent=c.status;el('calving').textContent=fmt(c.calving);el('dim').textContent=c.calving?diff(db.visit.date,c.calving):'FALTANTE';el('ai').textContent=fmt(lastAI(c));el('dai').textContent=lastAI(c)?daysAI(c):'FALTANTE';el('nAI').textContent=c.nAI??'FALTANTE';el('lact').textContent=c.lactation??'FALTANTE';el('action').textContent=eligibleDiag(c)?'DIAGNÓSTICO DE GESTACIÓN':'REVISIÓN / EVENTO NO PROGRAMADO';let r=res(c);el('result').innerHTML=r==='PREGNANT'?'<span class="ok">🟢 PREÑADA ✓</span>':r==='OPEN'?'<span class="bad">🔴 VACÍA ✓</span>':'PENDIENTE';el('diagActions').style.display=eligibleDiag(c)&&r==='PENDING'?'grid':'none'}
 el('hatoSearch').addEventListener('input',renderHato);el('hatoSort').addEventListener('change',renderHato);
 el('search').addEventListener('input',e=>{let v=e.target.value.trim();if(!v){el('cow').classList.add('hidden');el('missing').classList.add('hidden');return}let c=db.cows.find(x=>x.id===v);c?showCow(c):(el('cow').classList.add('hidden'),el('missing').classList.remove('hidden'))}); function quick(id,r){current=db.cows.find(x=>x.id===id);diagnose(r)}
@@ -65,4 +253,6 @@ function pregKpi(){let start=cycleStartFor(db.visit.date),end=add(start,20);let 
 function renderPregRate(){let k=pregKpi();if(!k.mature){el('prHeadline').textContent='PENDIENTE DE CONFIRMACIÓN';el('prInfo').textContent=`Ciclo ${fmt(k.start)}–${fmt(k.end)}. No se fuerza un porcentaje mientras el ciclo aún puede contener servicios sin diagnóstico maduro.`}else if(!k.denominator.length){el('prHeadline').textContent='SIN DENOMINADOR';el('prInfo').textContent='No hay vacas elegibles reconstruibles con los datos disponibles.'}else{let pct=(100*k.conceptions.length/k.denominator.length).toFixed(1);el('prHeadline').textContent=pct+' %';el('prInfo').textContent=`${k.conceptions.length} / ${k.denominator.length} × 100. Ciclo ${fmt(k.start)}–${fmt(k.end)}.`}el('kpiAudit').innerHTML=`<div class="note"><b>Periodo:</b> ${fmt(k.start)}–${fmt(k.end)}<br><b>Elegibles:</b> ${k.denominator.length} · ${k.denominator.map(c=>c.id).join(', ')||'—'}<br><b>Gestaciones:</b> ${k.conceptions.length} · ${k.conceptions.map(c=>c.id).join(', ')||'—'}<br><b>Regla:</b> PVE ${db.settings.vwp} DEL; la gestación se atribuye a la fecha de IA fértil. Datos previos al ${fmt(db.settings.trackingStart)} no se reconstruyen si el PDF no contiene el historial completo.</div>`}
 function toggleKpi(){el('kpiAudit').classList.toggle('hidden')} function finishVisit(){let ds=Object.values(db.visit.diagnoses),p=ds.filter(x=>x.result==='PREGNANT').length,o=ds.filter(x=>x.result==='OPEN').length,t=db.cows.filter(eligibleDiag).length;el('report').classList.remove('hidden');el('report').innerHTML=`<h3>Informe de visita</h3><p><b>Rancho:</b> ${db.ranch.name} · <b>Fecha:</b> ${fmt(db.visit.date)}</p><div class="grid"><div>Revisadas<br><b>${p+o}</b></div><div>Preñadas<br><b>${p}</b></div><div>Vacías<br><b>${o}</b></div><div>Pendientes<br><b>${Math.max(0,t-p-o)}</b></div></div><p class="muted">Los pendientes permanecen pendientes; no se convierten automáticamente en fallas.</p>`;el('report').scrollIntoView({behavior:'smooth'})}
 function netState(){el('net').textContent=navigator.onLine?'● EN LÍNEA':'● OFFLINE'} addEventListener('online',netState);addEventListener('offline',netState);netState();render();save();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-</script></body></html>
+</script>
+<div id="printReport" class="report-sheet"></div>
+</body></html>
