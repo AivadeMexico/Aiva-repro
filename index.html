@@ -166,7 +166,7 @@ body{background:radial-gradient(circle at 88% 0,#dff1f8 0,transparent 30%),linea
        style="display:block;max-width:430px;width:72%;height:auto;object-fit:contain">
 </div>
 <div class="brand">AIVA REPRO</div><div style="font-size:18px;font-weight:800;margin-top:3px">Asesoría Integral Bovina</div><div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <select id="ranchSelector" class="input" style="max-width:300px;font-weight:800" onchange="switchRanch(this.value)"></select>
+      <select id="ranchSelector" class="input" style="max-width:300px;font-weight:800" onchange="switchRanch(this.value)"><option value="la-jara" selected>La Jara</option></select>
       <button class="btn light" onclick="openRanchManager()">+ AGREGAR RANCHO</button>
     </div>
     <div id="ranchOwner" style="margin-top:7px;font-size:17px;font-weight:800">Propietario: Antonio Olmeda</div><div class="muted"><b id="homeRanchName">La Jara</b></div></div><span id="net" class="pill"></span></div>
@@ -265,6 +265,13 @@ const SOURCE_DATE='2026-08-04', DAY=86400000, SEED=[{"id": "25", "lot": "0", "la
 const parse=d=>new Date(d+'T12:00:00'); const iso=d=>d.toISOString().slice(0,10); const add=(d,n)=>iso(new Date(parse(d).getTime()+n*DAY)); const diff=(a,b)=>Math.floor((parse(a)-parse(b))/DAY); const fmt=d=>d?parse(d).toLocaleDateString('es-MX'):'FALTANTE';
 function normalize(c){c.ais=[]; if(c.daysAI>0){let d=add(SOURCE_DATE,-c.daysAI); c.ais.push({date:d,service:c.nAI||null,source:'DERIVED_FROM_SNAPSHOT'}); if(c.status.startsWith('PREGNANT'))c.conceptionDate=d} return c}
 let db=JSON.parse(localStorage.getItem('bovirepro_v3')); if(!db) db={ranch:{name:'La Jara'},cows:SEED.map(normalize),events:[],visit:{date:SOURCE_DATE,diagnoses:{}},settings:{vwp:60,pregCheckDays:35,gestationDays:280,dryDays:60,trackingStart:SOURCE_DATE}};
+if(!Array.isArray(db.cows) || db.cows.length<SEED.length){
+  const old=new Map((Array.isArray(db.cows)?db.cows:[]).map(c=>[String(c.id),c]));
+  db.cows=SEED.map(c=>old.get(String(c.id)) || normalize(JSON.parse(JSON.stringify(c))));
+  old.forEach((c,id)=>{ if(!db.cows.some(x=>String(x.id)===id)) db.cows.push(c); });
+  db.ranch={name:'La Jara',owner:'Antonio Olmeda'};
+  localStorage.setItem('bovirepro_v3',JSON.stringify(db));
+}
 let current=null,filter='ALL'; const el=id=>document.getElementById(id); function save(){
   localStorage.setItem('bovirepro_v3',JSON.stringify(db));
   try{
@@ -468,12 +475,23 @@ function loadRanchIntoState(r){
   }
 }
 function renderRanchSelector(){
-  const s=document.getElementById('ranchSelector'); if(!s) return;
-  const d=ranchesLoad(), aid=activeRanchId();
-  s.innerHTML=d.ranches.map(r=>`<option value="${r.id}" ${r.id===aid?'selected':''}>${r.name}</option>`).join('');
-  const r=d.ranches.find(x=>x.id===aid)||d.ranches[0];
-  const o=document.getElementById('ranchOwner'); if(o) o.textContent='Propietario: '+(r.owner || (r.id==='la-jara'?'Antonio Olmeda':'—'));
-}
+  const s=document.getElementById('ranchSelector');
+  if(!s) return;
+  let d;
+  try{ d=ranchesLoad(); }catch(e){ d={ranches:[]}; }
+  if(!d || !Array.isArray(d.ranches)) d={ranches:[]};
+  let r=d.ranches.find(x=>x && (x.id==='la-jara' || String(x.name||'').toLowerCase()==='la jara'));
+  if(!r){
+    r={id:'la-jara',name:'La Jara',owner:'Antonio Olmeda',cows:JSON.parse(JSON.stringify(SEED))};
+    d.ranches.unshift(r);
+    try{ ranchesSave(d); }catch(e){}
+  }
+  localStorage.setItem(ACTIVE_RANCH_KEY,'la-jara');
+  s.innerHTML='<option value="la-jara" selected>La Jara</option>';
+  s.value='la-jara';
+  const o=document.getElementById('ranchOwner');
+  if(o) o.textContent='Propietario: Antonio Olmeda';
+} 
 function switchRanch(id){
   syncCurrentRanchFromState();
   localStorage.setItem(ACTIVE_RANCH_KEY,id);
