@@ -25,6 +25,25 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr} .logo{max-width:330px} .kpis{grid-template-columns:repeat(2,1fr)} h1{font-size:32px} select{min-width:0;flex:1}}
 #cowSort{min-height:44px;padding:10px 12px;border:1px solid #cbd9df;border-radius:10px;background:#fff;font-size:15px}
 .modal input,.modal select,.modal button{min-height:44px}
+
+/* Tarjeta clínica de lectura rápida, inspirada en fichas de gestión de hato */
+#cowModal .modal{width:min(1060px,100%);padding:0;border-radius:18px;background:#f2f6f8}
+.cow-head{background:#113c55;color:white;padding:19px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cow-head h2{color:white;margin:0;font-size:26px}.cow-head .light{background:white;color:#113c55}
+.cow-body{padding:18px}.cow-topline{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.cow-status{padding:7px 12px;background:#dceee8;color:#11604b;border-radius:7px;font-size:13px;font-weight:900}
+.cow-ranch{font-size:13px;color:#536d7b;font-weight:700}
+.cow-panel{background:white;border:1px solid #d6e3e9;border-radius:12px;overflow:hidden;margin:12px 0}
+.cow-panel-title{background:#e4edf2;color:#17465e;padding:10px 14px;font-weight:900;font-size:13px;letter-spacing:.045em}
+.cow-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.cow-fact{padding:13px 14px;border-right:1px solid #e4edf2;border-bottom:1px solid #e4edf2;min-width:0}
+.cow-fact span{display:block;color:#667e8a;font-size:11px;font-weight:800;text-transform:uppercase}
+.cow-fact strong{display:block;margin-top:5px;color:#153c52;font-size:19px;overflow-wrap:anywhere}
+.cow-dual{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.cow-panel .history{margin:8px 13px;padding:9px 12px;border-left:3px solid #7aa8ba;background:#f6fafb;border-radius:3px;font-size:13px}
+.cow-event{padding:14px}.cow-event-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cow-event-grid .field{margin:4px 0}.cow-event button{margin-top:8px}
+@media(max-width:720px){#cowModal{padding:0}#cowModal .modal{height:100dvh;max-height:100dvh;width:100%;border-radius:0}.cow-head{padding:15px}.cow-body{padding:12px}.cow-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.cow-dual,.cow-event-grid{grid-template-columns:1fr}.cow-fact strong{font-size:17px}}
 </style>
 </head>
 <body>
@@ -46,15 +65,16 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
  <div class="kpi"><span>DÍAS ABIERTOS</span><b id="kOpen">—</b></div>
  <div class="kpi"><span>INTERVALO ENTRE PARTOS</span><b>—</b></div>
  <div class="kpi"><span>CONCEPCIÓN ANUAL</span><b id="kConc">—</b></div>
- <div class="kpi"><span>PREÑEZ <span id="kPregCycle">21</span> DÍAS</span><b id="kPreg">—</b><small id="kPregDetail" style="display:block;color:#70838e;margin-top:4px"></small></div>
+ <div class="kpi"><span>PREÑEZ 21 DÍAS</span><b>—</b></div>
  <div class="kpi"><span>DETECCIÓN DE CELOS</span><b>—</b></div>
 </div>
 
 <div class="card">
- <div class="row"><div><b>⚙️ Parámetros del rancho</b><div style="color:#70838e;margin-top:5px">Fecha de visita: <span id="visitDate"></span> · Espera: <b><span id="showVwp">60</span> d</b> · Diagnóstico: <b><span id="showDiag">30</span> d post-IA</b> · Ciclo: <b><span id="showCycle">21</span> d</b></div></div><button type="button" class="light" id="openParams">MODIFICAR</button></div>
+ <div class="row"><div><b>⚙️ Parámetros del rancho</b><div style="color:#70838e;margin-top:5px">Fecha de visita: <span id="visitDate"></span> · Espera: <b><span id="showVwp">60</span> d</b> · Diagnóstico: <b><span id="showDiag">30</span> d post-IA</b> · Ciclo: <b><span id="showCycle">21</span> d</b></div></div><button class="light" id="openParams">MODIFICAR</button></div>
 </div>
 
 <div class="section-title">HATO <span class="count" id="cowCount"></span></div>
+<div class="card"><div class="row"><b>Registro de animales</b><button class="btn" id="openAddCow">+ AGREGAR VACA</button></div></div>
 <div class="card">
  <div class="row">
  <div class="search"><input id="cowSearch" inputmode="numeric" placeholder="BUSCAR VACA POR ARETE"></div>
@@ -76,6 +96,18 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 </div>
 </div>
 
+
+<div class="section-title">Actividades programadas</div>
+<div class="card">
+ <div class="row"><div><b>Agenda reproductiva</b><div style="color:#70838e;margin-top:5px">Aplicaciones hormonales e inseminaciones pendientes por rancho.</div></div>
+ <button class="btn" id="openActivities">ACTIVIDADES · CALENDARIO</button></div>
+</div>
+<div class="modal-bg hidden" id="activitiesModal"><div class="modal" style="width:min(980px,100%)">
+ <div class="row"><h2 style="margin:0">Calendario de actividades</h2><button class="light" id="closeActivities">CERRAR</button></div>
+ <div class="row"><button class="light" id="prevActivityMonth">◀ MES ANTERIOR</button><b id="activityMonthTitle"></b><button class="light" id="nextActivityMonth">MES SIGUIENTE ▶</button></div>
+ <div id="activityCalendar" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:14px 0"></div>
+ <h3>Actividades del mes</h3><div id="activityList"></div>
+</div></div>
 <div class="section-title">Diagnóstico de gestación</div>
 <div class="card">
  <div class="row">
@@ -83,26 +115,31 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
    <b>Vacas para diagnóstico</b>
    <div style="color:#70838e;margin-top:5px">Registra rápidamente PREÑADA o VACÍA durante la visita.</div>
   </div>
-  <button type="button" class="btn" id="openDiagnosis">ABRIR DIAGNÓSTICO DE GESTACIÓN</button>
+  <button class="btn" id="openDiagnosis">ABRIR DIAGNÓSTICO DE GESTACIÓN</button>
+<button class="btn" id="openPregHistory">TASA DE PREÑEZ · HISTÓRICO 21 DÍAS</button>
  </div>
 </div>
 
 <div class="modal-bg hidden" id="diagnosisModal">
  <div class="modal" style="width:min(900px,100%)">
-  <div class="row"><h2 style="margin:0">Diagnóstico de gestación</h2><button type="button" class="light" id="closeDiagnosis">CERRAR</button></div>
+  <div class="row"><h2 style="margin:0">Diagnóstico de gestación</h2><button class="light" id="closeDiagnosis">CERRAR</button></div>
   <div class="field"><label>Buscar vaca por arete</label><input id="diagSearch" inputmode="numeric" placeholder="Ej. 2604"></div>
   <div class="scroll"><table><thead><tr><th>VACA</th><th>ÚLTIMA IA</th><th>DÍAS IA</th><th>SERVICIOS</th><th>RESULTADO</th></tr></thead><tbody id="diagBody"></tbody></table></div>
  </div>
 </div>
 
 
+<div class="modal-bg hidden" id="pregHistoryModal"><div class="modal" style="width:min(980px,100%)">
+<div class="row"><div><h2 style="margin:0">Tasa de preñez · Histórico 21 días</h2><div style="color:#70838e;margin-top:5px">Histórico por ciclos reproductivos completos.</div></div><button class="light" id="closePregHistory">CERRAR</button></div>
+<div class="scroll"><table><thead><tr><th>PERIODO</th><th>ELEGIBLES</th><th>CELOS DETECTADOS</th><th>INSEMINADAS</th><th>PREÑADAS</th><th>DETECCIÓN CELO</th><th>TASA PREÑEZ</th></tr></thead><tbody id="pregHistoryBody"></tbody></table></div>
+</div></div>
 <div class="modal-bg hidden" id="paramsModal">
  <div class="modal">
-  <div class="row"><h2 style="margin:0">Parámetros del rancho</h2><button type="button" class="light" id="closeParams">CERRAR</button></div>
+  <div class="row"><h2 style="margin:0">Parámetros del rancho</h2><button class="light" id="closeParams">CERRAR</button></div>
   <div class="field"><label>Días voluntarios de espera para primer servicio</label><input id="pVwp" type="number" min="0" inputmode="numeric" value="60"></div>
   <div class="field"><label>Días mínimos post-IA para diagnóstico de gestación</label><input id="pDiagDays" type="number" min="1" inputmode="numeric" value="30"></div>
-  <div class="field"><label>Periodo para TASA DE PREÑEZ (días)</label><input id="pCycle" type="number" min="1" inputmode="numeric" value="21"><small style="color:#70838e">Por defecto: 21 días. Se usa junto con los días voluntarios de espera para definir elegibilidad.</small></div>
-  <button type="button" class="btn" id="saveParams">GUARDAR PARÁMETROS</button>
+  <div class="field"><label>Duración del ciclo para tasa de preñez</label><input id="pCycle" type="number" min="1" inputmode="numeric" value="21"></div>
+  <button class="btn" id="saveParams">GUARDAR PARÁMETROS</button>
  </div>
 </div>
 
@@ -115,23 +152,38 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
  </div>
 </div>
 
+<div class="modal-bg hidden" id="addCowModal"><div class="modal">
+<div class="row"><h2 style="margin:0">Agregar vaca al establo</h2><button class="light" id="closeAddCow">CERRAR</button></div>
+<div class="field"><label>Número de arete *</label><input id="newCowId" inputmode="numeric" placeholder="Arete"></div>
+<div class="field"><label>Estatus reproductivo *</label><select id="newCowStatus">
+<option value="FRESH">FRESCA</option><option value="OPEN">ABIERTA / VACÍA</option>
+<option value="INSEMINATED">INSEMINADA</option><option value="PREGNANT">PREÑADA</option>
+<option value="DRY">SECA</option><option value="CLOSE_UP">PRONTA</option><option value="ABORT">ABORTO</option>
+</select></div>
+<div class="field"><label>Número de lactancia (opcional)</label><input id="newCowLactation" type="number" min="0" inputmode="numeric"></div>
+<div class="field"><label>Fecha del último parto (opcional)</label><input id="newCowCalving" type="date"></div>
+<div class="field"><label>Lote (opcional)</label><input id="newCowLot"></div>
+<div class="field"><label>Sexo de la cría (opcional)</label><select id="newCalfSex"><option value="">Sin registrar</option><option value="Becerra">Becerra</option><option value="Becerro">Becerro</option><option value="No identificado">No identificado</option></select></div>
+<div class="field"><label>Raza / cruza de la cría (opcional)</label><input id="newCalfBreed" placeholder="Ej. Angus"></div>
+<div class="field"><label>Condición de la cría (opcional)</label><select id="newCalfCondition"><option value="">Sin registrar</option><option value="Viva">Viva</option><option value="Muerta">Muerta</option><option value="No identificada">No identificada</option></select></div>
+<div class="field"><label>Observaciones de la cría (opcional)</label><input id="newCalfNotes"></div>
+<button class="btn" id="saveNewCow">GUARDAR VACA</button>
+</div></div>
 <div class="modal-bg hidden" id="cowModal">
  <div class="modal">
-  <div class="row"><h2 id="cowTitle" style="margin:0"></h2><button class="light" id="closeCow">CERRAR</button></div>
-  <div id="cowSummary" style="margin:12px 0"></div>
-  <h3>Historial reproductivo</h3><div id="history"></div>
-  <h3>Agregar evento</h3>
-  <div class="field"><label>Evento</label><select id="eventType"><option>PARTO</option><option>INSEMINACIÓN</option><option>REVISIÓN</option><option>SECADO</option><option>ABORTO</option></select></div>
-  <div class="field"><label>Fecha</label><input type="date" id="eventDate"></div>
-  <div class="field"><label>Nota / resultado</label><input id="eventNote"></div>
-  <button type="button" class="btn" id="saveEvent">GUARDAR EVENTO</button>
+  <div class="cow-head"><div><div style="font-size:11px;letter-spacing:.12em;opacity:.8">AIVA REPRO · EXPEDIENTE INDIVIDUAL</div><h2 id="cowTitle"></h2></div><button class="light" id="closeCow">✕ CERRAR</button></div>
+  <div class="cow-body">
+   <div id="cowSummary"></div>
+   <div class="cow-dual">
+    <section class="cow-panel"><div class="cow-panel-title">ACCIONES FUTURAS · PROTOCOLOS</div><div style="padding:12px"><div class="row"><b>Sincronización reproductiva</b><button class="btn small" id="startOvsynch">+ OVSYNCH</button></div><div id="cowProtocol" style="margin-top:10px"></div></div></section>
+    <section class="cow-panel"><div class="cow-panel-title">HISTORIAL REPRODUCTIVO · CRONOLÓGICO</div><div id="history" style="padding:5px 0;max-height:350px;overflow:auto"></div></section>
+   </div>
+   <section class="cow-panel"><div class="cow-panel-title">REGISTRAR NUEVO EVENTO</div><div class="cow-event"><div class="cow-event-grid"><div class="field"><label>Tipo de evento</label><select id="eventType"><option>PARTO</option><option>INSEMINACIÓN</option><option>REVISIÓN</option><option>CELO DETECTADO</option><option>SECADO</option><option>ABORTO</option></select></div><div class="field"><label>Fecha</label><input type="date" id="eventDate"></div></div><div class="field"><label>Observaciones / toro / resultado</label><input id="eventNote" placeholder="Escribir información del evento"></div><button class="btn" id="saveEvent">GUARDAR EVENTO</button></div></section>
+  </div>
  </div>
 </div>
 
 <script>
-if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));}
-if('caches' in window){caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));}
-
 const SEED=[{"id":"25","lot":"0","lactation":3,"calving":"2026-07-01","sourceDim":34,"status":"ABORT","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2609","lot":"0","lactation":2,"calving":"2026-06-15","sourceDim":50,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"1317","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"lutalize","events":[],"ais":[]},{"id":"1327","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"1018","lot":"0","lactation":3,"calving":"2026-05-01","sourceDim":95,"status":"FRESH","daysAI":0,"nAI":0,"note":"pg","events":[],"ais":[]},{"id":"31","lot":"0","lactation":3,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"80","lot":"0","lactation":2,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"121","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2604","lot":"0","lactation":2,"calving":"2026-06-01","sourceDim":64,"status":"INSEMINATED","daysAI":9,"nAI":2,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"137","lot":"0","lactation":1,"calving":"2026-05-01","sourceDim":95,"status":"INSEMINATED","daysAI":31,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-04","bull":"perfect"}]},{"id":"132","lot":"0","lactation":2,"calving":"2026-03-24","sourceDim":133,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-02","bull":"perfect"}]},{"id":"131","lot":"0","lactation":1,"calving":"2026-03-05","sourceDim":152,"status":"INSEMINATED","daysAI":17,"nAI":1,"note":"axford","events":[],"ais":[{"date":"2026-07-18","bull":"axford"}]},{"id":"119","lot":"0","lactation":1,"calving":"2026-02-06","sourceDim":179,"status":"INSEMINATED","daysAI":43,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-06-22","bull":"perfect"}]},{"id":"86","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"Charolais","events":[],"ais":[{"date":"2026-07-02","bull":"Charolais"}]},{"id":"68","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":30,"nAI":1,"note":"nacho","events":[],"ais":[{"date":"2026-07-05","bull":"nacho"}]},{"id":"136","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":9,"nAI":1,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"1318","lot":"0","lactation":1,"calving":"2026-04-01","sourceDim":125,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1333","lot":"0","lactation":1,"calving":"2026-03-01","sourceDim":156,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1015","lot":"0","lactation":1,"calving":"2026-02-08","sourceDim":177,"status":"PREGNANT","daysAI":94,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-02","bull":""}]},{"id":"203","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"201","lot":"0","lactation":2,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":142,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-15","bull":""}]},{"id":"130","lot":"0","lactation":1,"calving":"2026-01-20","sourceDim":196,"status":"PREGNANT","daysAI":159,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-26","bull":""}]},{"id":"1343","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1336","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"10","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1375","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"202","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":134,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-23","bull":""}]},{"id":"128","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT","daysAI":124,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-02","bull":""}]},{"id":"11","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":201,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-15","bull":""}]},{"id":"81","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":203,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-13","bull":""}]},{"id":"82","lot":"0","lactation":1,"calving":"2025-11-01","sourceDim":276,"status":"PREGNANT","daysAI":122,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-04","bull":""}]},{"id":"124","lot":"0","lactation":1,"calving":"2025-10-10","sourceDim":298,"status":"PREGNANT","daysAI":123,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-03","bull":""}]},{"id":"126","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":133,"nAI":2,"note":"","events":[],"ais":[{"date":"2026-03-24","bull":""}]},{"id":"69","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":196,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-20","bull":""}]},{"id":"70","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":135,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-03-22","bull":""}]},{"id":"83","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"12","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"3416","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"1004","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT_CONFIRMED","daysAI":178,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-07","bull":""}]},{"id":"9843","lot":"0","lactation":1,"calving":"2025-11-18","sourceDim":259,"status":"PREGNANT_CONFIRMED","daysAI":86,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-10","bull":""}]},{"id":"129","lot":"0","lactation":1,"calving":"2025-10-29","sourceDim":279,"status":"PREGNANT_CONFIRMED","daysAI":167,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-18","bull":""}]},{"id":"127","lot":"0","lactation":1,"calving":"2025-10-13","sourceDim":295,"status":"PREGNANT_CONFIRMED","daysAI":177,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-08","bull":""}]},{"id":"67","lot":"0","lactation":2,"calving":"2026-07-01","sourceDim":34,"status":"CLOSE_UP","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"138","lot":"0","lactation":2,"calving":"2025-12-01","sourceDim":235,"status":"DRY","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"49","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":274,"status":"DRY","daysAI":246,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-12-01","bull":""}]},{"id":"72","lot":"0","lactation":1,"calving":"2025-09-21","sourceDim":284,"status":"DRY","daysAI":287,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-10-21","bull":""}]},{"id":"66","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":271,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-06","bull":""}]},{"id":"5","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":264,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-13","bull":""}]},{"id":"134","lot":"0","lactation":2,"calving":"2026-03-23","sourceDim":134,"status":"OPEN","daysAI":0,"nAI":1,"note":"","events":[],"ais":[]},{"id":"9839","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"OPEN","daysAI":0,"nAI":0,"note":"cefalexina","events":[],"ais":[]}];
 const KEY='aivarepro_clean_v1';
 const today=()=>new Date().toISOString().slice(0,10);
@@ -148,6 +200,42 @@ if(!Array.isArray(la.cows)||la.cows.length<50){
  const old=new Map((la.cows||[]).map(c=>[String(c.id),c]));
  la.cows=SEED.map(c=>old.get(String(c.id))||c);
 }
+
+const ESPINOSA_IMPORT={"ias": [{"id": "954", "date": "2026-10-01", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "712", "date": "2026-10-01", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "642", "date": "2026-10-07", "bull": "Masterplan", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "703", "date": "2026-10-08", "bull": "Dinastia", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "3312", "date": "2026-10-08", "bull": "Dinastia", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "503", "date": "2026-10-11", "bull": "Dinastia", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "724", "date": "2026-10-11", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "715", "date": "2026-08-20", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "744", "date": "2026-08-28", "bull": "Miguel", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "752", "date": "2026-08-28", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "642", "date": "2026-08-28", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "703", "date": "2026-08-30", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "418", "date": "2026-09-08", "bull": "Masterplan", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "458", "date": "2026-09-10", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "629", "date": "2026-09-13", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "717", "date": "2026-09-17", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "659", "date": "2026-09-18", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "573", "date": "2026-09-18", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "709", "date": "2026-09-21", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "750", "date": "2026-09-21", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "766", "date": "2026-09-22", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "704", "date": "2026-09-22", "bull": "King", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "753", "date": "2026-09-28", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "710", "date": "2026-09-28", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "732", "date": "2026-09-30", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "755", "date": "2026-09-30", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "736", "date": "2026-09-30", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "367", "date": "2026-10-01", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "711", "date": "2026-10-01", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "1017", "date": "2026-10-01", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "654", "date": "2026-07-16", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "741", "date": "2026-07-16", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "746", "date": "2026-07-16", "bull": "Miguel", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "452", "date": "2026-07-16", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "712", "date": "2026-07-16", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "717", "date": "2026-07-16", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "649", "date": "2026-07-16", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "702", "date": "2026-07-19", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "403", "date": "2026-07-20", "bull": "Jerrick", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "744", "date": "2026-07-23", "bull": "Middleton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "710", "date": "2026-07-23", "bull": "Middleton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "750", "date": "2026-07-23", "bull": "Mayor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "743", "date": "2026-07-24", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "503", "date": "2026-08-03", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "746", "date": "2026-08-05", "bull": "Middleton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "654", "date": "2026-08-07", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "629", "date": "2026-08-09", "bull": "Herford", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "660", "date": "2026-08-11", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "704", "date": "2026-08-14", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "710", "date": "2026-08-14", "bull": "Middleton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "648", "date": "2026-08-14", "bull": "Middleton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "1578", "date": "2026-06-24", "bull": "Captain", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "1582", "date": "2026-02-04", "bull": "Chal", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "661", "date": "2026-02-04", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "738", "date": "2026-02-05", "bull": "Chawi", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "1008", "date": "2026-02-06", "bull": "Horsepower", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "614", "date": "2026-02-07", "bull": "Chawi", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "388", "date": "2026-02-07", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "313", "date": "2026-02-07", "bull": "Patton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "606", "date": "2026-02-08", "bull": "Patton", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "623", "date": "2026-02-10", "bull": "Chawi", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "376", "date": "2026-02-11", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "726", "date": "2026-02-14", "bull": "Angus", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "537", "date": "2026-02-14", "bull": "Mayor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "714", "date": "2026-02-14", "bull": "Mayor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "453", "date": "2026-02-14", "bull": "Mayor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "656", "date": "2026-02-14", "bull": "Angus", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "428", "date": "2026-02-14", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "400", "date": "2026-02-20", "bull": "Thor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}, {"id": "603", "date": "2026-02-22", "bull": "Mayor", "source": "Libreta ESPINOSA — IA 2026", "verification": "transcripción por verificar"}], "births": [{"id": "606", "date": "2026-01-12", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "1011", "date": "2026-01-30", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "623", "date": "2026-01-30", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "702", "date": "2026-02-08", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "620", "date": "2026-03-13", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "709", "date": "2026-03-15", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "400", "date": "2026-03-02", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "717", "date": "2026-03-13", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "635", "date": "2026-03-13", "note": "Becerro Angus", "verification": "transcripción por verificar"}, {"id": "743", "date": "2026-04-28", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "412", "date": "2026-04-03", "note": "Becerra 824", "verification": "transcripción por verificar"}, {"id": "638", "date": "2026-04-13", "note": "Becerro Angus", "verification": "transcripción por verificar"}, {"id": "710", "date": "2026-04-16", "note": "Becerra 825", "verification": "transcripción por verificar"}, {"id": "721", "date": "2026-04-17", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "741", "date": "2026-04-29", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "649", "date": "2026-04-30", "note": "Becerro Angus", "verification": "transcripción por verificar"}, {"id": "703", "date": "2026-05-13", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "717", "date": "2026-05-13", "note": "Becerra 828", "verification": "transcripción por verificar"}, {"id": "635", "date": "2026-05-13", "note": "Becerro Angus", "verification": "transcripción por verificar"}, {"id": "355", "date": "2026-05-22", "note": "Becerra 829", "verification": "transcripción por verificar"}, {"id": "760", "date": "2026-05-25", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "710", "date": "2026-05-28", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "692", "date": "2026-05-03", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "712", "date": "2026-05-09", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "537", "date": "2026-07-08", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "662", "date": "2026-07-15", "note": "Becerra Angus", "verification": "transcripción por verificar"}, {"id": "602", "date": "2026-07-15", "note": "Becerra Angus", "verification": "transcripción por verificar"}, {"id": "629", "date": "2026-07-15", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "763", "date": "2026-07-20", "note": "Becerra Angus", "verification": "transcripción por verificar"}, {"id": "733", "date": "2026-07-27", "note": "Becerra 805", "verification": "transcripción por verificar"}, {"id": "601", "date": "2026-07-30", "note": "Cría muerta", "verification": "transcripción por verificar"}, {"id": "725", "date": "2026-07-30", "note": "Cría muerta", "verification": "transcripción por verificar"}, {"id": "623", "date": "2026-07-08", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "642", "date": "2026-07-10", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "606", "date": "2026-07-12", "note": "Becerra 808", "verification": "transcripción por verificar"}, {"id": "654", "date": "2026-07-19", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "738", "date": "2026-07-20", "note": "Becerra 811", "verification": "transcripción por verificar"}, {"id": "452", "date": "2026-07-01", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "449", "date": "2026-07-05", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "560", "date": "2026-07-16", "note": "Becerra 812", "verification": "transcripción por verificar"}, {"id": "739", "date": "2026-07-16", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "740", "date": "2026-07-16", "note": "Becerra 813", "verification": "transcripción por verificar"}, {"id": "660", "date": "2026-07-24", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "701", "date": "2026-07-25", "note": "Becerra", "verification": "transcripción por verificar"}, {"id": "720", "date": "2026-07-28", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "702", "date": "2026-07-08", "note": "Becerro", "verification": "transcripción por verificar"}, {"id": "503", "date": "2026-07-16", "note": "Becerro", "verification": "transcripción por verificar"}], "pending": [{"id": "1011", "date_text": "2026-06-31", "bull": "Chawi", "reason": "Fecha inválida o ilegible"}, {"id": "537", "date_text": "2026-11-10", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "662", "date_text": "2026-11-15", "note": "Becerra Angus", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "602", "date_text": "2026-11-15", "note": "Becerra Angus", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "629", "date_text": "2026-11-15", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "763", "date_text": "2026-11-20", "note": "Becerra Angus", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "733", "date_text": "2026-11-27", "note": "Becerra 805", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "601", "date_text": "2026-11-30", "note": "Cría muerta", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "725", "date_text": "2026-11-30", "note": "Cría muerta", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "623", "date_text": "2026-11-08", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "642", "date_text": "2026-11-10", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "606", "date_text": "2026-11-12", "note": "Becerra 808", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "654", "date_text": "2026-11-19", "note": "Becerra", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "738", "date_text": "2026-11-20", "note": "Becerra 811", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "452", "date_text": "2026-11-01", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "449", "date_text": "2026-11-05", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "560", "date_text": "2026-11-16", "note": "Becerra 812", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "739", "date_text": "2026-11-16", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "740", "date_text": "2026-11-16", "note": "Becerra 813", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "660", "date_text": "2026-11-24", "note": "Becerra", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "701", "date_text": "2026-11-25", "note": "Becerra", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "720", "date_text": "2026-11-28", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "702", "date_text": "2026-11-08", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}, {"id": "503", "date_text": "2026-11-16", "note": "Becerro", "reason": "Parto anotado en noviembre; fecha futura respecto al 12/oct/2026. Verificar año antes de incorporar."}]};
+function mergeEspinosaSeed(){
+ let ranch=data.ranches.find(r=>r.id==='espinosa');
+ if(!ranch){ranch={id:'espinosa',name:'ESPINOSA',owner:'Por definir',cows:[],params:{vwp:60,cycle:21}};data.ranches.push(ranch)}
+ ranch.cows=ranch.cows||[];
+ const getCow=id=>{
+   let c=ranch.cows.find(x=>String(x.id)===String(id));
+   if(!c){c={id:String(id),lot:'',lactation:0,calving:null,status:'OPEN',daysAI:0,nAI:0,note:'Registro de libreta — pendiente de verificar',events:[],ais:[]};ranch.cows.push(c)}
+   c.events=c.events||[];c.ais=c.ais||[];return c;
+ };
+ ESPINOSA_IMPORT.births.forEach(x=>{
+   const c=getCow(x.id);
+   if(!c.events.some(e=>e.type==='PARTO'&&e.date===x.date)){
+     c.events.push({date:x.date,type:'PARTO',note:'Cría: '+x.note,source:'Libreta ESPINOSA',verification:x.verification});
+   }
+ });
+ ESPINOSA_IMPORT.ias.forEach(x=>{
+   const c=getCow(x.id);
+   if(!c.ais.some(a=>a.date===x.date&&String(a.bull||'').toLowerCase()===x.bull.toLowerCase())){
+     c.ais.push({date:x.date,bull:x.bull,source:x.source,verification:x.verification});
+   }
+ });
+ ranch.cows.forEach(c=>{
+   c.events.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+   c.ais.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+   const calv=c.events.filter(e=>e.type==='PARTO'&&e.date<=today()).map(e=>e.date).sort().pop();
+   if(calv && (!c.calving || c.calving<calv))c.calving=calv;
+   // Never mark a pregnancy as confirmed based on insemination.
+   const latestAI=c.ais.filter(a=>a.date<=today()).map(a=>a.date).sort().pop();
+   if(latestAI && (!c.calving||latestAI>c.calving) && ['OPEN','FRESH'].includes(c.status))c.status='INSEMINATED';
+   c.nAI=c.ais.filter(a=>!c.calving||a.date>=c.calving).length;
+ });
+}
+mergeEspinosaSeed();
+
 if(!data.ranches.some(r=>r.id===data.active)) data.active='la-jara';
 const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
 const active=()=>data.ranches.find(r=>r.id===data.active)||data.ranches[0];
@@ -155,28 +243,6 @@ const lastAI=c=>c.ais?.length?c.ais[c.ais.length-1].date:null;
 const dim=c=>c.calving?diff(today(),c.calving):c.sourceDim??null;
 const dai=c=>lastAI(c)?diff(today(),lastAI(c)):null;
 const pregDays=c=>String(c.status).startsWith('PREGNANT')&&lastAI(c)?diff(today(),lastAI(c)):null;
-
-function pregnancyRate(r){
- const p=r.params||{vwp:60,diagDays:30,cycle:21};
- const cycle=Math.max(1,Number(p.cycle)||21);
- const vwp=Math.max(0,Number(p.vwp)||0);
- // Operational 21-day pregnancy rate: cows currently eligible for service are the denominator;
- // cows diagnosed pregnant whose most recent IA/conception falls within the current cycle are numerator.
- const eligible=(r.cows||[]).filter(c=>{
-   const d=dim(c);
-   const st=String(c.status||'').toUpperCase();
-   if(d==null || d<vwp) return false;
-   if(st==='DRY' || st==='ABORT') return false;
-   return !st.startsWith('PREGNANT');
- });
- const pregnantThisCycle=(r.cows||[]).filter(c=>{
-   const st=String(c.status||'').toUpperCase();
-   const ia=lastAI(c);
-   return st.startsWith('PREGNANT') && ia && diff(today(),ia)>=0 && diff(today(),ia)<cycle;
- });
- const denominator=eligible.length+pregnantThisCycle.length;
- return {rate:denominator?100*pregnantThisCycle.length/denominator:null,pregnant:pregnantThisCycle.length,eligible:denominator,cycle};
-}
 
 function render(){
  const r=active(); if(!r)return; r.params=r.params||{vwp:60,diagDays:30,cycle:21};
@@ -218,10 +284,6 @@ function render(){
  document.getElementById('kConc').textContent=insems?Math.round(100*preg/insems)+' %':'—';
  const opens=r.cows.filter(c=>c.calving&&String(c.status).startsWith('PREGNANT')&&lastAI(c)).map(c=>diff(lastAI(c),c.calving)).filter(x=>x>=0);
  document.getElementById('kOpen').textContent=opens.length?Math.round(opens.reduce((a,b)=>a+b,0)/opens.length):'—';
- const pr=pregnancyRate(r);
- document.getElementById('kPregCycle').textContent=pr.cycle;
- document.getElementById('kPreg').textContent=pr.rate==null?'—':pr.rate.toFixed(1)+' %';
- document.getElementById('kPregDetail').textContent=pr.eligible?`${pr.pregnant} preñadas / ${pr.eligible} elegibles`:'Sin vacas elegibles';
  save();
 }
 document.getElementById('ranchSelect').addEventListener('change',e=>{data.active=e.target.value;render()});
@@ -246,16 +308,30 @@ document.getElementById('saveRanch').onclick=()=>{
 
 let currentCow=null;
 const cowModal=document.getElementById('cowModal');
+function nextCowAction(c){
+ const actions=(c.protocols||[]).filter(p=>p.status==='active').flatMap(p=>p.actions||[]).filter(a=>!a.done).sort((a,b)=>a.date.localeCompare(b.date));
+ if(actions.length)return actions[0].date+' · '+actions[0].type;
+ const last=lastAI(c),diag=active().params?.diagDays||30;
+ if(c.status==='INSEMINATED'&&last)return addDaysISO(last,Number(diag))+' · Diagnóstico';
+ return 'Sin programar';
+}
 function openCow(id){
  const c=active().cows.find(x=>String(x.id)===String(id)); if(!c)return; currentCow=c;
  document.getElementById('cowTitle').textContent='Vaca '+c.id;
- document.getElementById('cowSummary').innerHTML=`<b>Estatus:</b> ${statusEs(c.status)} · <b>DEL:</b> ${dim(c)??'—'} · <b>Días IA:</b> ${dai(c)??'—'} · <b>Servicios:</b> ${c.nAI??c.ais?.length??0}`;
+ const last=lastAI(c);const daysPreg=(String(c.status).startsWith('PREGNANT')&&last)?diff(today(),last):null;
+ const due=(daysPreg!==null)?addDaysISO(last,280):null;
+ const services=(c.ais||[]).filter(a=>!c.calving||a.date>=c.calving).length;
+ const bull=(c.ais||[]).filter(a=>a.date===last).slice(-1)[0]?.bull||'—';
+ const openDays=(c.calving&&String(c.status).startsWith('PREGNANT')&&last)?diff(last,c.calving):(c.calving&&!String(c.status).startsWith('PREGNANT'))?diff(today(),c.calving):null;
+ const fact=(label,val)=>`<div class="cow-fact"><span>${label}</span><strong>${escapeHtml(val??'—')}</strong></div>`;
+ document.getElementById('cowSummary').innerHTML=`<div class="cow-topline"><span class="cow-status">${escapeHtml(statusEs(c.status))}</span><span class="cow-ranch">${escapeHtml(active().name||'')} · Lote ${escapeHtml(c.lot||'—')} · Lactancia ${escapeHtml(c.lactation??'—')}</span></div><section class="cow-panel"><div class="cow-panel-title">RESUMEN PRODUCTIVO Y REPRODUCTIVO</div><div class="cow-facts">${fact('Último parto',c.calving)}${fact('Días en leche (DEL)',dim(c))}${fact('Días abiertos',openDays)}${fact('Última IA',last)}${fact('Días post-IA',dai(c))}${fact('N.º de servicios',services)}${fact('Toro / semen',bull)}${fact('Días de gestación',daysPreg)}${fact('Fecha probable de parto',due)}${fact('Próxima acción',nextCowAction(c))}${fact('Arete',c.id)}${fact('Raza',c.breed||'—')}</div></section>`;
  const h=[];
- if(c.calving)h.push({date:c.calving,type:'PARTO',note:''});
+ if(c.calving && !(c.events||[]).some(e=>e.type==='PARTO'&&e.date===c.calving))h.push({date:c.calving,type:'PARTO',note:''});
  (c.ais||[]).forEach((a,i)=>h.push({date:a.date,type:'INSEMINACIÓN',note:a.bull||a.note||''}));
  (c.events||[]).forEach(e=>h.push(e));
  h.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
- document.getElementById('history').innerHTML=h.length?h.map(e=>`<div class="history"><b>${e.date}</b> · ${e.type}${e.note?' — '+e.note:''}</div>`).join(''):'Sin eventos registrados.';
+ document.getElementById('history').innerHTML=h.length?h.map(e=>`<div class="history"><b>${escapeHtml(e.date)}</b> · ${escapeHtml(e.type)}${e.note?' — '+escapeHtml(e.note):''}</div>`).join(''):'<div style="padding:12px">Sin eventos registrados.</div>';
+ renderCowProtocol(c);
  document.getElementById('eventDate').value=today(); cowModal.classList.remove('hidden');
 }
 document.getElementById('closeCow').onclick=()=>cowModal.classList.add('hidden');
@@ -286,6 +362,77 @@ document.getElementById('saveEvent').onclick=function(e){
  document.getElementById('eventNote').value='';
  alert('Evento guardado correctamente.');
 };
+
+
+// Ovsynch: D0 GnRH, D7 PGF2alpha (Lutalyse), D9 PM GnRH, D10 AM IA.
+// Scheduled actions are not clinical administrations until explicitly confirmed.
+function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function addDaysISO(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+const ovSteps=[
+ {day:0,type:'GnRH',time:'Horario por definir'},
+ {day:7,type:'Prostaglandina (Lutalyse)',time:'Horario por definir'},
+ {day:9,type:'GnRH',time:'Tarde'},
+ {day:10,type:'Inseminación artificial',time:'Mañana'}
+];
+function cowSchedules(c){return (c.protocols||[]).flatMap(p=>(p.actions||[]).map(a=>({...a,protocolId:p.id,protocolName:p.type, cowId:c.id})))}
+function renderCowProtocol(c){
+ const el=document.getElementById('cowProtocol');
+ const ps=(c.protocols||[]).filter(p=>p.status!=='cancelled');
+ el.innerHTML=ps.length?ps.map(p=>`<div class="history"><b>${escapeHtml(p.type)}</b> · inicio ${p.start} · ${p.status==='completed'?'Finalizado':'En curso'}<div>${p.actions.map(a=>`<div style="padding:5px 0">${a.date} · ${escapeHtml(a.type)} (${escapeHtml(a.time)}) · <b>${a.done?'REALIZADO':'PENDIENTE'}</b> ${a.done?'':`<button class="light" onclick="confirmProtocolAction('${escapeHtml(c.id)}','${p.id}','${a.day}')">CONFIRMAR REALIZACIÓN</button>`}</div>`).join('')}</div><button class="light" onclick="cancelProtocol('${escapeHtml(c.id)}','${p.id}')">CANCELAR PROTOCOLO</button></div>`).join(''):'Sin protocolos activos.';
+}
+document.getElementById('startOvsynch').onclick=()=>{
+ if(!currentCow)return;
+ const c=currentCow;
+ if((c.protocols||[]).some(p=>p.status==='active')){alert('Esta vaca ya tiene un protocolo activo. Finalízalo o cancélalo antes.');return}
+ if(!confirm('¿Asignar Ovsynch a la vaca '+c.id+' con inicio hoy ('+localDate()+')? Esta acción programa actividades; no registra aplicaciones como realizadas.'))return;
+ const start=localDate(),id='ov-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+ c.protocols=c.protocols||[];
+ c.protocols.push({id,type:'Ovsynch',start,status:'active',actions:ovSteps.map(x=>({...x,date:addDaysISO(start,x.day),done:false}))});
+ save();render();openCow(c.id);
+};
+window.confirmProtocolAction=(cowId,pid,day)=>{
+ const c=active().cows.find(c=>String(c.id)===String(cowId));
+ const p=c?.protocols?.find(p=>p.id===pid);const a=p?.actions.find(a=>String(a.day)===String(day));
+ if(!a||a.done||p.status!=='active')return;
+ if(!confirm('¿Confirmas que se realizó '+a.type+' en vaca '+c.id+'?'))return;
+ a.done=true;a.completedAt=new Date().toISOString();
+ c.events=c.events||[];
+ c.events.push({date:localDate(),type:a.type==='Inseminación artificial'?'INSEMINACIÓN PROGRAMADA REALIZADA':'APLICACIÓN HORMONAL',note:'Ovsynch día '+a.day+': '+a.type+' · '+a.time,protocolId:pid});
+ if(a.type==='Inseminación artificial'){
+   c.ais=c.ais||[];c.ais.push({date:localDate(),note:'IA Ovsynch · servicio confirmado'});c.ais.sort((x,y)=>x.date.localeCompare(y.date));c.status='INSEMINATED';c.nAI=c.ais.length;
+ }
+ if(p.actions.every(a=>a.done))p.status='completed';
+ save();render();if(!cowModal.classList.contains('hidden'))openCow(c.id);
+ if(!document.getElementById('activitiesModal').classList.contains('hidden'))renderActivityCalendar();
+};
+window.cancelProtocol=(cowId,pid)=>{
+ if(!confirm('¿Cancelar las actividades pendientes de este protocolo? Las aplicaciones realizadas permanecen en el historial.'))return;
+ const c=active().cows.find(c=>String(c.id)===String(cowId));const p=c?.protocols?.find(p=>p.id===pid);
+ if(!p)return;p.status='cancelled';save();render();openCow(c.id);
+};
+const activitiesModal=document.getElementById('activitiesModal');
+let activityMonth=localDate().slice(0,7);
+document.getElementById('openActivities').onclick=()=>{activityMonth=localDate().slice(0,7);renderActivityCalendar();activitiesModal.classList.remove('hidden')};
+document.getElementById('closeActivities').onclick=()=>activitiesModal.classList.add('hidden');
+activitiesModal.onclick=e=>{if(e.target===activitiesModal)activitiesModal.classList.add('hidden')};
+function shiftActivityMonth(n){let [y,m]=activityMonth.split('-').map(Number);let d=new Date(y,m-1+n,1);activityMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');renderActivityCalendar()}
+document.getElementById('prevActivityMonth').onclick=()=>shiftActivityMonth(-1);
+document.getElementById('nextActivityMonth').onclick=()=>shiftActivityMonth(1);
+function renderActivityCalendar(){
+ const [y,m]=activityMonth.split('-').map(Number),first=new Date(y,m-1,1),days=new Date(y,m,0).getDate();
+ const all=active().cows.flatMap(c=>cowSchedules(c).filter(a=>(c.protocols||[]).find(p=>p.id===a.protocolId)?.status!=='cancelled'));
+ const count={};all.forEach(a=>count[a.date]=(count[a.date]||0)+1);
+ document.getElementById('activityMonthTitle').textContent=first.toLocaleDateString('es-MX',{month:'long',year:'numeric'}).toUpperCase();
+ const weekday=['L','M','M','J','V','S','D'];let html=weekday.map(x=>`<div style="text-align:center;font-weight:bold">${x}</div>`).join('');
+ const offset=(first.getDay()+6)%7;
+ for(let i=0;i<offset;i++)html+='<div></div>';
+ for(let d=1;d<=days;d++){const iso=activityMonth+'-'+String(d).padStart(2,'0');const acts=all.filter(a=>a.date===iso);
+ html+=`<div style="border:1px solid #d8e0e4;border-radius:7px;padding:6px;min-height:56px;overflow-wrap:anywhere"><b>${d}</b>${acts.length?`<div style="font-size:11px;color:#156c70">${acts.length} actividad${acts.length===1?'':'es'}</div>`:''}</div>`}
+ document.getElementById('activityCalendar').innerHTML=html;
+ const monthly=all.filter(a=>a.date.startsWith(activityMonth)).sort((a,b)=>a.date.localeCompare(b.date)||String(a.cowId).localeCompare(String(b.cowId)));
+ document.getElementById('activityList').innerHTML=monthly.length?monthly.map(a=>`<div class="history"><b>${a.date}</b> · Vaca ${escapeHtml(a.cowId)} · ${escapeHtml(a.type)} (${escapeHtml(a.time)}) · ${a.done?'REALIZADO':'PENDIENTE'} ${a.done?'':`<button class="light" onclick="confirmProtocolAction('${escapeHtml(a.cowId)}','${a.protocolId}','${a.day}')">CONFIRMAR</button>`}</div>`).join(''):'Sin actividades programadas este mes.';
+}
 
 const diagnosisModal=document.getElementById('diagnosisModal');
 function diagnosisCandidates(){
@@ -336,10 +483,10 @@ function openParams(){
  paramsModal.classList.remove('hidden');
 }
 function closeParams(){ paramsModal.classList.add('hidden'); }
-document.getElementById('openParams').onclick=openParams;
-document.getElementById('closeParams').onclick=closeParams;
+document.getElementById('openParams').addEventListener('click',openParams);
+document.getElementById('closeParams').addEventListener('click',closeParams);
 paramsModal.addEventListener('click',e=>{if(e.target===paramsModal)closeParams()});
-document.getElementById('saveParams').onclick=()=>{
+document.getElementById('saveParams').addEventListener('click',()=>{
  const r=active(); if(!r)return;
  r.params={
    vwp:Math.max(0,Number(document.getElementById('pVwp').value)||0),
@@ -348,7 +495,78 @@ document.getElementById('saveParams').onclick=()=>{
  };
  save(); closeParams(); render();
  alert('Parámetros guardados correctamente.');
-};
+});
+
+
+function phDate(s){const a=String(s).slice(0,10).split('-').map(Number);return new Date(a[0],a[1]-1,a[2])}
+function phISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function phAdd(d,n){let x=new Date(d);x.setDate(x.getDate()+n);return x}
+function phCalving(c){return c.calving||(c.events||[]).filter(e=>e.type==='PARTO').sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]?.date||null}
+function phPregDate(c){
+ let dx=(c.events||[]).filter(e=>e.type==='DIAGNÓSTICO'&&String(e.note||'').toUpperCase().includes('PREÑ')).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ if(!dx.length&&!String(c.status||'').toUpperCase().startsWith('PREG'))return null;
+ let limit=dx[0]?.date||today(), ais=(c.ais||[]).map(a=>typeof a==='string'?a:a.date).filter(Boolean).sort().filter(d=>String(d)<=String(limit));
+ return ais.length?ais[ais.length-1]:null
+}
+function pregnancyHistory(){
+ let r=active();if(!r)return[];r.params=r.params||{vwp:60,cycle:21};
+ let cycle=Number(r.params.cycle)||21,vwp=Number(r.params.vwp)||60,cows=r.cows||[];
+ let cs=cows.map(phCalving).filter(Boolean).sort();if(!cs.length)return[];
+ let start=phAdd(phDate(cs[0]),vwp),now=phDate(today()),out=[];
+ while(start<=now){
+  let end=phAdd(start,cycle-1);if(end>now)break;
+  let s=phISO(start),e=phISO(end);
+  let elig=cows.filter(c=>{let cal=phCalving(c);if(!cal)return false;let ed=phISO(phAdd(phDate(cal),vwp));let pd=phPregDate(c);return ed<=e&&(!pd||pd>=s)});
+  let heats=elig.filter(c=>(c.events||[]).some(ev=>{
+    let t=String(ev.type||'').toUpperCase();
+    return (t.includes('CELO')||t.includes('ESTRO'))&&String(ev.date)>=s&&String(ev.date)<=e
+  }));
+  let bred=elig.filter(c=>(c.ais||[]).some(a=>{
+    let d=typeof a==='string'?a:a.date;
+    return d&&String(d)>=s&&String(d)<=e
+  }));
+  let preg=elig.filter(c=>{let pd=phPregDate(c);return pd&&pd>=s&&pd<=e});
+  out.push({s,e,n:elig.length,h:heats.length,b:bred.length,p:preg.length,
+    hdr:elig.length?heats.length/elig.length*100:0,
+    r:elig.length?preg.length/elig.length*100:0});
+  start=phAdd(start,cycle)
+ }
+ return out.reverse()
+}
+function renderPregHistory(){let x=pregnancyHistory(),b=document.getElementById('pregHistoryBody');b.innerHTML=x.length?x.map(a=>`<tr><td>${a.s} → ${a.e}</td><td>${a.n}</td><td>${a.h}</td><td>${a.b}</td><td>${a.p}</td><td>${a.hdr.toFixed(1)}%</td><td><b>${a.r.toFixed(1)}%</b></td></tr>`).join(''):'<tr><td colspan="7">Sin ciclos completos todavía.</td></tr>'}
+const phm=document.getElementById('pregHistoryModal');
+document.getElementById('openPregHistory').onclick=()=>{renderPregHistory();phm.classList.remove('hidden')};
+document.getElementById('closePregHistory').onclick=()=>phm.classList.add('hidden');
+phm.onclick=e=>{if(e.target===phm)phm.classList.add('hidden')};
+
+
+// Alta individual de vacas: datos independientes por rancho.
+const addCowModal=document.getElementById('addCowModal');
+document.getElementById('openAddCow').addEventListener('click',()=>addCowModal.classList.remove('hidden'));
+document.getElementById('closeAddCow').addEventListener('click',()=>addCowModal.classList.add('hidden'));
+addCowModal.addEventListener('click',e=>{if(e.target===addCowModal)addCowModal.classList.add('hidden')});
+document.getElementById('saveNewCow').addEventListener('click',()=>{
+ const ranch=active(),id=document.getElementById('newCowId').value.trim();
+ if(!id){alert('Escribe el número de arete.');return}
+ if(ranch.cows.some(c=>String(c.id)===id)){alert('Este arete ya existe en el establo seleccionado.');return}
+ const calving=document.getElementById('newCowCalving').value;
+ const sex=document.getElementById('newCalfSex').value;
+ const breed=document.getElementById('newCalfBreed').value.trim();
+ const condition=document.getElementById('newCalfCondition').value;
+ const calfNote=document.getElementById('newCalfNotes').value.trim();
+ const calf=[sex,breed,condition,calfNote].filter(Boolean).join(' · ');
+ if(calf&&!calving){alert('Para guardar observaciones de la cría, indica la fecha del parto.');return}
+ const lactation=Number(document.getElementById('newCowLactation').value)||0;
+ const cow={id,lot:document.getElementById('newCowLot').value.trim(),lactation,calving:calving||null,
+ status:document.getElementById('newCowStatus').value,daysAI:0,nAI:0,note:'',
+ events:calving&&calf?[{date:calving,type:'PARTO',note:'Cría: '+calf,calf:{sex,breed,condition,notes:calfNote}}]:[],
+ ais:[]};
+ ranch.cows.push(cow);save();render();
+ addCowModal.classList.add('hidden');
+ ['newCowId','newCowLactation','newCowCalving','newCowLot','newCalfBreed','newCalfNotes'].forEach(id=>document.getElementById(id).value='');
+ ['newCalfSex','newCalfCondition'].forEach(id=>document.getElementById(id).value='');
+ alert('Vaca '+cow.id+' agregada a '+ranch.name+'.');
+});
 
 save();render();
 </script>
