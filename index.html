@@ -44,6 +44,8 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 .cow-event{padding:14px}.cow-event-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .cow-event-grid .field{margin:4px 0}.cow-event button{margin-top:8px}
 @media(max-width:720px){#cowModal{padding:0}#cowModal .modal{height:100dvh;max-height:100dvh;width:100%;border-radius:0}.cow-head{padding:15px}.cow-body{padding:12px}.cow-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.cow-dual,.cow-event-grid{grid-template-columns:1fr}.cow-fact strong{font-size:17px}}
+
+.audit-day{border-left:3px solid #0a789e;margin:15px 0;padding:8px 13px;background:#f4f9fc;border-radius:8px}.audit-item{padding:7px 0;border-bottom:1px solid #e0ebf0;font-size:14px}.audit-item:last-child{border:0}.audit-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.audit-muted{font-size:12px;color:#667f8e}.audit-warning{background:#fff7ed;border:1px solid #f5d4a7;padding:12px;border-radius:10px}
 </style>
 </head>
 <body>
@@ -74,7 +76,7 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
 </div>
 
 <div class="section-title">HATO <span class="count" id="cowCount"></span></div>
-<div class="card"><div class="row"><b>Registro de animales</b><button class="btn" id="openAddCow">+ AGREGAR VACA</button></div></div>
+<div class="card"><div class="row"><b>Registro de animales</b><div class="row"><button class="light" id="openInactive">VER BAJAS / RECUPERAR</button><button class="btn" id="openAddCow">+ AGREGAR VACA</button></div></div></div>
 <div class="card">
  <div class="row">
  <div class="search"><input id="cowSearch" inputmode="numeric" placeholder="BUSCAR VACA POR ARETE"></div>
@@ -102,6 +104,8 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
  <div class="row"><div><b>Agenda reproductiva</b><div style="color:#70838e;margin-top:5px">Aplicaciones hormonales e inseminaciones pendientes por rancho.</div></div>
  <button class="btn" id="openActivities">ACTIVIDADES · CALENDARIO</button></div>
 </div>
+<div class="modal-bg hidden" id="auditModal"><div class="modal" style="width:min(980px,100%)"><div class="row"><h2 style="margin:0">Historial cronológico del establo</h2><button class="light" id="closeAudit">CERRAR</button></div><p id="auditRanchTitle"></p><div class="row"><label>Mes <input type="month" id="auditMonth"></label><label>Buscar arete <input id="auditSearch" placeholder="Todos los animales"></label></div><div id="auditContent"></div></div></div>
+<div class="modal-bg hidden" id="inactiveModal"><div class="modal" style="width:min(850px,100%)"><div class="row"><h2 style="margin:0">Animales dados de baja</h2><button class="light" id="closeInactive">CERRAR</button></div><p>Los expedientes se conservan. Una recuperación no elimina el registro de baja.</p><div id="inactiveList"></div></div></div>
 <div class="modal-bg hidden" id="activitiesModal"><div class="modal" style="width:min(980px,100%)">
  <div class="row"><h2 style="margin:0">Calendario de actividades</h2><button class="light" id="closeActivities">CERRAR</button></div>
  <div class="row"><button class="light" id="prevActivityMonth">◀ MES ANTERIOR</button><b id="activityMonthTitle"></b><button class="light" id="nextActivityMonth">MES SIGUIENTE ▶</button></div>
@@ -173,7 +177,7 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
  <div class="modal">
   <div class="cow-head"><div><div style="font-size:11px;letter-spacing:.12em;opacity:.8">AIVA REPRO · EXPEDIENTE INDIVIDUAL</div><h2 id="cowTitle"></h2></div><button class="light" id="closeCow">✕ CERRAR</button></div>
   <div class="cow-body">
-   <div id="cowSummary"></div>
+   <div id="cowSummary"></div><div id="cowLifecycle" style="margin:12px 0"></div>
    <div class="cow-dual">
     <section class="cow-panel"><div class="cow-panel-title">ACCIONES FUTURAS · PROTOCOLOS</div><div style="padding:12px"><div class="row"><b>Sincronización reproductiva</b><button class="btn small" id="startOvsynch">+ OVSYNCH</button></div><div id="cowProtocol" style="margin-top:10px"></div></div></section>
     <section class="cow-panel"><div class="cow-panel-title">HISTORIAL REPRODUCTIVO · CRONOLÓGICO</div><div id="history" style="padding:5px 0;max-height:350px;overflow:auto"></div></section>
@@ -182,6 +186,11 @@ table{width:100%;border-collapse:collapse;min-width:720px} th,td{padding:12px 10
   </div>
  </div>
 </div>
+
+<div class="section-title">Administración de accesos · Prueba gratuita</div>
+<div class="card" style="margin-bottom:20px"><div class="row"><div><b>Ganaderos y establos</b><div style="color:#70838e;margin-top:5px">Todos los establos, incluidos los nuevos. Solo activar o desactivar; no se elimina información.</div></div></div><div id="accessAdminList"></div><p class="audit-warning" style="margin-top:12px"><b>Modo de preparación:</b> todos los establos aparecen aquí automáticamente. Activar o desactivar guarda el estado únicamente en este navegador. No crea enlaces independientes, no bloquea accesos remotos y no sincroniza dispositivos. Para hacerlo de forma segura se requiere autenticación y permisos en un servidor.</p></div>
+<div class="section-title">Historial del establo</div>
+<div class="card" style="margin-bottom:28px"><div class="row"><div><b>Historial cronológico de todas las actividades</b><div style="color:#70838e;margin-top:5px">Partos, IA, Ovsynch, diagnósticos, bajas y recuperaciones, agrupados por día.</div></div><button class="btn" id="openAudit">HISTORIAL CRONOLÓGICO</button></div></div>
 
 <script>
 const SEED=[{"id":"25","lot":"0","lactation":3,"calving":"2026-07-01","sourceDim":34,"status":"ABORT","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2609","lot":"0","lactation":2,"calving":"2026-06-15","sourceDim":50,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"1317","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"lutalize","events":[],"ais":[]},{"id":"1327","lot":"0","lactation":1,"calving":"2026-06-01","sourceDim":64,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"1018","lot":"0","lactation":3,"calving":"2026-05-01","sourceDim":95,"status":"FRESH","daysAI":0,"nAI":0,"note":"pg","events":[],"ais":[]},{"id":"31","lot":"0","lactation":3,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"80","lot":"0","lactation":2,"calving":"2026-04-01","sourceDim":125,"status":"FRESH","daysAI":0,"nAI":0,"note":"ade + pg","events":[],"ais":[]},{"id":"121","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"FRESH","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"2604","lot":"0","lactation":2,"calving":"2026-06-01","sourceDim":64,"status":"INSEMINATED","daysAI":9,"nAI":2,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"137","lot":"0","lactation":1,"calving":"2026-05-01","sourceDim":95,"status":"INSEMINATED","daysAI":31,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-04","bull":"perfect"}]},{"id":"132","lot":"0","lactation":2,"calving":"2026-03-24","sourceDim":133,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-07-02","bull":"perfect"}]},{"id":"131","lot":"0","lactation":1,"calving":"2026-03-05","sourceDim":152,"status":"INSEMINATED","daysAI":17,"nAI":1,"note":"axford","events":[],"ais":[{"date":"2026-07-18","bull":"axford"}]},{"id":"119","lot":"0","lactation":1,"calving":"2026-02-06","sourceDim":179,"status":"INSEMINATED","daysAI":43,"nAI":1,"note":"perfect","events":[],"ais":[{"date":"2026-06-22","bull":"perfect"}]},{"id":"86","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"INSEMINATED","daysAI":33,"nAI":1,"note":"Charolais","events":[],"ais":[{"date":"2026-07-02","bull":"Charolais"}]},{"id":"68","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":30,"nAI":1,"note":"nacho","events":[],"ais":[{"date":"2026-07-05","bull":"nacho"}]},{"id":"136","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"INSEMINATED","daysAI":9,"nAI":1,"note":"onetocker","events":[],"ais":[{"date":"2026-07-26","bull":"onetocker"}]},{"id":"1318","lot":"0","lactation":1,"calving":"2026-04-01","sourceDim":125,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1333","lot":"0","lactation":1,"calving":"2026-03-01","sourceDim":156,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"1015","lot":"0","lactation":1,"calving":"2026-02-08","sourceDim":177,"status":"PREGNANT","daysAI":94,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-02","bull":""}]},{"id":"203","lot":"0","lactation":1,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":95,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-05-01","bull":""}]},{"id":"201","lot":"0","lactation":2,"calving":"2026-02-01","sourceDim":184,"status":"PREGNANT","daysAI":142,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-15","bull":""}]},{"id":"130","lot":"0","lactation":1,"calving":"2026-01-20","sourceDim":196,"status":"PREGNANT","daysAI":159,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-26","bull":""}]},{"id":"1343","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1336","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"10","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":184,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-01","bull":""}]},{"id":"1375","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"202","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT","daysAI":134,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-23","bull":""}]},{"id":"128","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT","daysAI":124,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-02","bull":""}]},{"id":"11","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":201,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-15","bull":""}]},{"id":"81","lot":"0","lactation":1,"calving":"2025-12-01","sourceDim":246,"status":"PREGNANT","daysAI":203,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-13","bull":""}]},{"id":"82","lot":"0","lactation":1,"calving":"2025-11-01","sourceDim":276,"status":"PREGNANT","daysAI":122,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-04","bull":""}]},{"id":"124","lot":"0","lactation":1,"calving":"2025-10-10","sourceDim":298,"status":"PREGNANT","daysAI":123,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-04-03","bull":""}]},{"id":"126","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":133,"nAI":2,"note":"","events":[],"ais":[{"date":"2026-03-24","bull":""}]},{"id":"69","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":307,"status":"PREGNANT","daysAI":196,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-01-20","bull":""}]},{"id":"70","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":135,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-03-22","bull":""}]},{"id":"83","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":337,"status":"PREGNANT","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"12","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":161,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-24","bull":""}]},{"id":"3416","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"PREGNANT_CONFIRMED","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"1004","lot":"0","lactation":1,"calving":"2025-12-16","sourceDim":231,"status":"PREGNANT_CONFIRMED","daysAI":178,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-02-07","bull":""}]},{"id":"9843","lot":"0","lactation":1,"calving":"2025-11-18","sourceDim":259,"status":"PREGNANT_CONFIRMED","daysAI":86,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-05-10","bull":""}]},{"id":"129","lot":"0","lactation":1,"calving":"2025-10-29","sourceDim":279,"status":"PREGNANT_CONFIRMED","daysAI":167,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-18","bull":""}]},{"id":"127","lot":"0","lactation":1,"calving":"2025-10-13","sourceDim":295,"status":"PREGNANT_CONFIRMED","daysAI":177,"nAI":1,"note":"","events":[],"ais":[{"date":"2026-02-08","bull":""}]},{"id":"67","lot":"0","lactation":2,"calving":"2026-07-01","sourceDim":34,"status":"CLOSE_UP","daysAI":0,"nAI":0,"note":"","events":[],"ais":[]},{"id":"138","lot":"0","lactation":2,"calving":"2025-12-01","sourceDim":235,"status":"DRY","daysAI":156,"nAI":0,"note":"","events":[],"ais":[{"date":"2026-03-01","bull":""}]},{"id":"49","lot":"0","lactation":1,"calving":"2025-10-01","sourceDim":274,"status":"DRY","daysAI":246,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-12-01","bull":""}]},{"id":"72","lot":"0","lactation":1,"calving":"2025-09-21","sourceDim":284,"status":"DRY","daysAI":287,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-10-21","bull":""}]},{"id":"66","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":271,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-06","bull":""}]},{"id":"5","lot":"0","lactation":1,"calving":"2025-09-01","sourceDim":304,"status":"DRY","daysAI":264,"nAI":0,"note":"","events":[],"ais":[{"date":"2025-11-13","bull":""}]},{"id":"134","lot":"0","lactation":2,"calving":"2026-03-23","sourceDim":134,"status":"OPEN","daysAI":0,"nAI":1,"note":"","events":[],"ais":[]},{"id":"9839","lot":"0","lactation":1,"calving":"2026-01-01","sourceDim":215,"status":"OPEN","daysAI":0,"nAI":0,"note":"cefalexina","events":[],"ais":[]}];
@@ -235,6 +244,7 @@ function mergeEspinosaSeed(){
  });
 }
 mergeEspinosaSeed();
+if(!data.ranches.some(r=>r.id==='jaime-munoz'))data.ranches.push({id:'jaime-munoz',name:'Jaime Muñoz',owner:'Jaime Muñoz',cows:[],params:{vwp:60,cycle:21}});
 
 if(!data.ranches.some(r=>r.id===data.active)) data.active='la-jara';
 const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
@@ -254,9 +264,9 @@ function render(){
  document.getElementById('showVwp').textContent=r.params.vwp;
  document.getElementById('showDiag').textContent=r.params.diagDays;
  document.getElementById('showCycle').textContent=r.params.cycle;
- document.getElementById('herdLabel').textContent=r.cows.length+' vacas';
+ document.getElementById('herdLabel').textContent=r.cows.filter(c=>!c.inactive).length+' vacas activas';
  const q=document.getElementById('cowSearch').value.trim();
- let rows=r.cows.filter(c=>!q||String(c.id).includes(q));
+ let rows=r.cows.filter(c=>!c.inactive&&(!q||String(c.id).includes(q)));
  const sortSel=document.getElementById('cowSort');
  if(r.sort && sortSel.value!==r.sort) sortSel.value=r.sort;
  const sort=sortSel?.value||r.sort||'numberAsc';
@@ -277,12 +287,12 @@ function render(){
  });
  document.getElementById('cowCount').textContent='· '+rows.length+' vacas';
  document.getElementById('hato').innerHTML=rows.map(c=>`<tr><td><b>${c.id}</b></td><td><span class="badge">${statusEs(c.status)}</span></td><td>${dim(c)??'—'}</td><td>${dai(c)??'—'}</td><td>${pregDays(c)??'—'}</td><td>${c.nAI??c.ais?.length??0}</td><td><button class="light small" onclick="openCow('${c.id}')">TARJETA</button></td></tr>`).join('');
- const dims=r.cows.map(dim).filter(x=>Number.isFinite(x)&&x>=0);
+ const dims=r.cows.filter(c=>!c.inactive).map(dim).filter(x=>Number.isFinite(x)&&x>=0);
  document.getElementById('kDim').textContent=dims.length?Math.round(dims.reduce((a,b)=>a+b,0)/dims.length):'—';
- const preg=r.cows.filter(c=>String(c.status).startsWith('PREGNANT')).length;
- const insems=r.cows.reduce((n,c)=>n+(c.ais?.length||0),0);
+ const preg=r.cows.filter(c=>!c.inactive&&String(c.status).startsWith('PREGNANT')).length;
+ const insems=r.cows.filter(c=>!c.inactive).reduce((n,c)=>n+(c.ais?.length||0),0);
  document.getElementById('kConc').textContent=insems?Math.round(100*preg/insems)+' %':'—';
- const opens=r.cows.filter(c=>c.calving&&String(c.status).startsWith('PREGNANT')&&lastAI(c)).map(c=>diff(lastAI(c),c.calving)).filter(x=>x>=0);
+ const opens=r.cows.filter(c=>!c.inactive&&c.calving&&String(c.status).startsWith('PREGNANT')&&lastAI(c)).map(c=>diff(lastAI(c),c.calving)).filter(x=>x>=0);
  document.getElementById('kOpen').textContent=opens.length?Math.round(opens.reduce((a,b)=>a+b,0)/opens.length):'—';
  save();
 }
@@ -303,7 +313,7 @@ document.getElementById('saveRanch').onclick=()=>{
  const id='r-'+Date.now();
  data.ranches.push({id,name,owner,cows:[]});
  data.active=id; save(); ranchModal.classList.add('hidden');
- document.getElementById('newRanchName').value='';document.getElementById('newOwner').value='';render();
+ document.getElementById('newRanchName').value='';document.getElementById('newOwner').value='';render();renderAccessAdmin();
 };
 
 let currentCow=null;
@@ -317,7 +327,7 @@ function nextCowAction(c){
 }
 function openCow(id){
  const c=active().cows.find(x=>String(x.id)===String(id)); if(!c)return; currentCow=c;
- document.getElementById('cowTitle').textContent='Vaca '+c.id;
+ document.getElementById('cowTitle').textContent='Vaca '+c.id+(c.inactive?' · BAJA':'');
  const last=lastAI(c);const daysPreg=(String(c.status).startsWith('PREGNANT')&&last)?diff(today(),last):null;
  const due=(daysPreg!==null)?addDaysISO(last,280):null;
  const services=(c.ais||[]).filter(a=>!c.calving||a.date>=c.calving).length;
@@ -332,13 +342,16 @@ function openCow(id){
  h.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
  document.getElementById('history').innerHTML=h.length?h.map(e=>`<div class="history"><b>${escapeHtml(e.date)}</b> · ${escapeHtml(e.type)}${e.note?' — '+escapeHtml(e.note):''}</div>`).join(''):'<div style="padding:12px">Sin eventos registrados.</div>';
  renderCowProtocol(c);
+ document.getElementById('cowLifecycle').innerHTML=c.inactive?'<div class="audit-warning"><b>Animal dado de baja</b><p>Su historial se conserva. Puedes recuperar el animal desde la lista de bajas.</p><button class="btn small" id="restoreCowCard">RECUPERAR ANIMAL</button></div>':'<button class="red small" id="deactivateCowCard">DAR DE BAJA ANIMAL</button>';
+ document.getElementById('restoreCowCard')?.addEventListener('click',()=>restoreCow(c.id));
+ document.getElementById('deactivateCowCard')?.addEventListener('click',()=>deactivateCow(c.id));
  document.getElementById('eventDate').value=today(); cowModal.classList.remove('hidden');
 }
 document.getElementById('closeCow').onclick=()=>cowModal.classList.add('hidden');
 cowModal.onclick=e=>{if(e.target===cowModal)cowModal.classList.add('hidden')};
 document.getElementById('saveEvent').onclick=function(e){
  e.preventDefault();
- if(!currentCow){alert('Selecciona una vaca.');return}
+ if(!currentCow||currentCow.inactive){alert('Selecciona una vaca activa.');return}
  const type=document.getElementById('eventType').value;
  const date=document.getElementById('eventDate').value;
  const note=document.getElementById('eventNote').value.trim();
@@ -382,7 +395,7 @@ function renderCowProtocol(c){
  el.innerHTML=ps.length?ps.map(p=>`<div class="history"><b>${escapeHtml(p.type)}</b> · inicio ${p.start} · ${p.status==='completed'?'Finalizado':'En curso'}<div>${p.actions.map(a=>`<div style="padding:5px 0">${a.date} · ${escapeHtml(a.type)} (${escapeHtml(a.time)}) · <b>${a.done?'REALIZADO':'PENDIENTE'}</b> ${a.done?'':`<button class="light" onclick="confirmProtocolAction('${escapeHtml(c.id)}','${p.id}','${a.day}')">CONFIRMAR REALIZACIÓN</button>`}</div>`).join('')}</div><button class="light" onclick="cancelProtocol('${escapeHtml(c.id)}','${p.id}')">CANCELAR PROTOCOLO</button></div>`).join(''):'Sin protocolos activos.';
 }
 document.getElementById('startOvsynch').onclick=()=>{
- if(!currentCow)return;
+ if(!currentCow||currentCow.inactive)return;
  const c=currentCow;
  if((c.protocols||[]).some(p=>p.status==='active')){alert('Esta vaca ya tiene un protocolo activo. Finalízalo o cancélalo antes.');return}
  if(!confirm('¿Asignar Ovsynch a la vaca '+c.id+' con inicio hoy ('+localDate()+')? Esta acción programa actividades; no registra aplicaciones como realizadas.'))return;
@@ -421,7 +434,7 @@ document.getElementById('prevActivityMonth').onclick=()=>shiftActivityMonth(-1);
 document.getElementById('nextActivityMonth').onclick=()=>shiftActivityMonth(1);
 function renderActivityCalendar(){
  const [y,m]=activityMonth.split('-').map(Number),first=new Date(y,m-1,1),days=new Date(y,m,0).getDate();
- const all=active().cows.flatMap(c=>cowSchedules(c).filter(a=>(c.protocols||[]).find(p=>p.id===a.protocolId)?.status!=='cancelled'));
+ const all=active().cows.filter(c=>!c.inactive).flatMap(c=>cowSchedules(c).filter(a=>(c.protocols||[]).find(p=>p.id===a.protocolId)?.status!=='cancelled'));
  const count={};all.forEach(a=>count[a.date]=(count[a.date]||0)+1);
  document.getElementById('activityMonthTitle').textContent=first.toLocaleDateString('es-MX',{month:'long',year:'numeric'}).toUpperCase();
  const weekday=['L','M','M','J','V','S','D'];let html=weekday.map(x=>`<div style="text-align:center;font-weight:bold">${x}</div>`).join('');
@@ -440,6 +453,7 @@ function diagnosisCandidates(){
  r.params=r.params||{vwp:60,diagDays:30,cycle:21};
  const min=Number(r.params.diagDays)||30;
  return (r.cows||[]).filter(c=>{
+   if(c.inactive)return false;
    const ia=lastAI(c);
    const status=String(c.status||'').trim().toUpperCase();
    const isInseminated = status==='INSEM' || status==='INSEMINADA' || status==='INSEMINATED';
@@ -510,7 +524,7 @@ function phPregDate(c){
 }
 function pregnancyHistory(){
  let r=active();if(!r)return[];r.params=r.params||{vwp:60,cycle:21};
- let cycle=Number(r.params.cycle)||21,vwp=Number(r.params.vwp)||60,cows=r.cows||[];
+ let cycle=Number(r.params.cycle)||21,vwp=Number(r.params.vwp)||60,cows=(r.cows||[]).filter(c=>!c.inactive);
  let cs=cows.map(phCalving).filter(Boolean).sort();if(!cs.length)return[];
  let start=phAdd(phDate(cs[0]),vwp),now=phDate(today()),out=[];
  while(start<=now){
@@ -568,6 +582,72 @@ document.getElementById('saveNewCow').addEventListener('click',()=>{
  alert('Vaca '+cow.id+' agregada a '+ranch.name+'.');
 });
 
+
+// Historial cronológico y bajas reversibles. Los eventos son apéndices, no borrados.
+const auditModal=document.getElementById('auditModal'), inactiveModal=document.getElementById('inactiveModal');
+function stampEvent(c,type,note){c.events=c.events||[];c.events.push({date:localDate(),timestamp:new Date().toISOString(),type,note,actor:'Usuario de este dispositivo'});}
+function deactivateCow(id){
+ const c=active().cows.find(x=>String(x.id)===String(id));if(!c||c.inactive)return;
+ const reason=prompt('Motivo de la baja de la vaca '+id+' (venta, muerte, descarte, otro):');if(reason===null)return;
+ if(!reason.trim()){alert('Indica un motivo de baja.');return}
+ if(!confirm('¿Dar de baja a la vaca '+id+'? Se conservará su expediente y podrás recuperarla.'))return;
+ c.inactive=true;c.inactiveSince=new Date().toISOString();c.inactiveReason=reason.trim();
+ stampEvent(c,'BAJA','Motivo: '+reason.trim());save();cowModal.classList.add('hidden');render();renderInactive();renderAudit();
+}
+function restoreCow(id){
+ const c=active().cows.find(x=>String(x.id)===String(id));if(!c||!c.inactive)return;
+ if(!confirm('¿Recuperar la vaca '+id+' y devolverla al hato activo?'))return;
+ c.inactive=false;c.inactiveSince=null;
+ stampEvent(c,'RECUPERACIÓN','Animal recuperado tras baja registrada');save();render();renderInactive();renderAudit();
+ if(!cowModal.classList.contains('hidden'))openCow(id);
+}
+window.deactivateCow=deactivateCow;window.restoreCow=restoreCow;
+function renderInactive(){
+ const cows=active().cows.filter(c=>c.inactive);
+ document.getElementById('inactiveList').innerHTML=cows.length?cows.map(c=>`<div class="history"><div class="row"><div><b>Vaca ${escapeHtml(c.id)}</b><div class="audit-muted">${escapeHtml(c.inactiveSince?.slice(0,10)||'Fecha no registrada')} · ${escapeHtml(c.inactiveReason||'Sin motivo')}</div></div><div class="audit-actions"><button class="light small" data-inactive-open="${escapeHtml(c.id)}">VER EXPEDIENTE</button><button class="btn small" data-restore="${escapeHtml(c.id)}">RECUPERAR</button></div></div></div>`).join(''):'<p>No hay animales dados de baja.</p>';
+}
+document.getElementById('openInactive').onclick=()=>{renderInactive();inactiveModal.classList.remove('hidden')};
+document.getElementById('closeInactive').onclick=()=>inactiveModal.classList.add('hidden');
+inactiveModal.onclick=e=>{if(e.target===inactiveModal)inactiveModal.classList.add('hidden')};
+document.getElementById('inactiveList').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.restore)restoreCow(b.dataset.restore);if(b.dataset.inactiveOpen){inactiveModal.classList.add('hidden');openCow(b.dataset.inactiveOpen)}};
+function ranchAudit(){
+ const out=[];
+ active().cows.forEach(c=>{
+  const push=(date,type,note,ts)=>{if(date)out.push({date:String(date).slice(0,10),type:String(type),note:String(note||''),cow:String(c.id),timestamp:ts||''})};
+  (c.events||[]).forEach(e=>push(e.date,e.type,e.note,e.timestamp));
+  (c.ais||[]).forEach(a=>push(typeof a==='string'?a:a.date,'INSEMINACIÓN',typeof a==='string'?'':a.bull||a.note||'',a.timestamp));
+  if(c.calving&&!(c.events||[]).some(e=>e.type==='PARTO'&&e.date===c.calving))push(c.calving,'PARTO','Fecha de parto registrada');
+  (c.protocols||[]).forEach(p=>push(p.start,'INICIO OVSYNCH',p.type+' · protocolo '+p.id));
+ });
+ return out.sort((a,b)=>b.date.localeCompare(a.date)||b.timestamp.localeCompare(a.timestamp)||a.cow.localeCompare(b.cow,'es',{numeric:true}));
+}
+function renderAudit(){
+ const m=document.getElementById('auditMonth').value,q=document.getElementById('auditSearch').value.trim().toLowerCase();
+ document.getElementById('auditRanchTitle').textContent=active().name+' · Actividades realizadas y movimientos registrados';
+ const entries=ranchAudit().filter(e=>(!m||e.date.startsWith(m))&&(!q||e.cow.toLowerCase().includes(q)));
+ const days=new Map();entries.forEach(e=>{if(!days.has(e.date))days.set(e.date,[]);days.get(e.date).push(e)});
+ document.getElementById('auditContent').innerHTML=days.size?[...days].map(([day,items])=>`<div class="audit-day"><b>${escapeHtml(new Date(day+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</b><div class="audit-muted">${items.length} registro(s)</div>${items.map(e=>`<div class="audit-item"><b>Vaca ${escapeHtml(e.cow)}</b> · ${escapeHtml(e.type)}${e.note?' — '+escapeHtml(e.note):''}</div>`).join('')}</div>`).join(''):'<p>No hay movimientos registrados en este periodo.</p>';
+}
+document.getElementById('openAudit').onclick=()=>{document.getElementById('auditMonth').value='';document.getElementById('auditSearch').value='';renderAudit();auditModal.classList.remove('hidden')};
+document.getElementById('closeAudit').onclick=()=>auditModal.classList.add('hidden');
+auditModal.onclick=e=>{if(e.target===auditModal)auditModal.classList.add('hidden')};
+document.getElementById('auditMonth').onchange=renderAudit;
+document.getElementById('auditSearch').oninput=renderAudit;
+
+// Gestión local de estados de acceso. No constituye seguridad ni revocación remota.
+function renderAccessAdmin(){
+ const list=document.getElementById('accessAdminList');if(!list)return;
+ const managed=data.ranches;
+ list.innerHTML=managed.map(r=>{const enabled=r.accessEnabled!==false;return `<div class="row" style="border-top:1px solid #e0ebf0;padding:12px 0;align-items:center"><div><b>${escapeHtml(r.name)}</b><div class="audit-muted">Prueba gratuita · ${enabled?'Activado':'Desactivado'} (solo en este dispositivo)</div></div><button class="${enabled?'light':'btn'} small" data-access-ranch="${escapeHtml(r.id)}">${enabled?'DESACTIVAR':'ACTIVAR'}</button></div>`}).join('');
+}
+document.getElementById('accessAdminList').onclick=e=>{
+ const btn=e.target.closest('button[data-access-ranch]');if(!btn)return;
+ const ranch=data.ranches.find(r=>r.id===btn.dataset.accessRanch);if(!ranch)return;
+ const next=ranch.accessEnabled===false;
+ if(!confirm(`${next?'Activar':'Desactivar'} el acceso de ${ranch.name}? Esta opción solo cambia el estado local; no revoca enlaces publicados.`))return;
+ ranch.accessEnabled=next;save();renderAccessAdmin();
+};
+renderAccessAdmin();
 save();render();
 </script>
 </body></html>
